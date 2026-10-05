@@ -1,0 +1,25 @@
+import type { Stay } from "@/domain";
+import type { Locale } from "@/i18n/config";
+import { createT } from "@/i18n/translate";
+import { ResultCard } from "@/features/search/ResultCard";
+import { searchStays } from "@/services/stays.service";
+import { Section } from "@/shared/layout/Container";
+import type { SearchParams } from "@/validation/search";
+
+/** "More stays nearby": the closest other stays by straight-line distance, carrying the current dates. */
+export async function NearbyStays({ stay, locale, params, query }: { stay: Stay; locale: Locale; params: SearchParams; query: string }) {
+  const t = createT(locale);
+  const near = `${stay.coords.lat},${stay.coords.lng}`;
+  const { items } = await searchStays({ ...params, near, place: "", category: undefined, sort: "recommended" });
+  const others = items.filter((i) => i.stay.id !== stay.id).slice(0, 4);
+  if (others.length === 0) return null;
+  return (
+    <Section divided id="nearby">
+      <h2 className="type-heading">{t("stay.nearby")}</h2>
+      <p className="type-body mb-6 text-text-secondary">{t("stay.nearbyHint", { city: stay.place.city })}</p>
+      <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        {others.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={query} stayType={params.stayType} foreigner={params.foreigner} layout="card" compare={false} />)}
+      </ul>
+    </Section>
+  );
+}

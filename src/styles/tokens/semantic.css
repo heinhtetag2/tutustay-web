@@ -1,0 +1,45 @@
+/* Semantic tokens: the only colours components may use (via Tailwind utilities). */
+:root {
+  --surface-page: var(--p-neutral-0);
+  --surface-raised: var(--p-neutral-0);
+  --surface-subtle: var(--p-neutral-100);
+  --surface-brand-subtle: var(--p-brand-50);
+  --surface-inverse: var(--p-neutral-900);
+
+  --text-primary: var(--p-neutral-950);
+  --text-secondary: var(--p-neutral-500);
+  --text-muted: var(--p-neutral-500);
+  --text-disabled: var(--p-neutral-400); /* disabled only: fails AA by design */
+  --text-on-action: var(--p-neutral-0);
+  --text-link: var(--p-brand-700);
+  --text-brand: var(--p-brand-700);
+
+  --brand: var(--p-brand-600); /* identity: logo, icons, large fills, selection */
+  --action-primary: var(--p-brand-700); /* D-1: AA with white text (5.93:1) */
+  --action-primary-hover: var(--p-brand-800);
+  --action-primary-pressed: var(--p-brand-900);
+
+  --border-subtle: var(--p-neutral-300);
+  --border-control: var(--p-neutral-450);
+  --border-focus: var(--p-brand-600);
+
+  --status-success-text: var(--p-success-700);
+  --status-success-bg: var(--p-success-50);
+  --status-error-text: var(--p-error-600);
+  --status-error-bg: var(--p-error-50);
+  --status-warning-text: var(--p-warning-700);
+  --status-warning-bg: var(--p-warning-50);
+  --status-info-text: var(--p-info-700);
+  --status-info-bg: var(--p-info-50);
+
+  --promo-text: var(--p-promo-700);
+  --promo-bg: var(--p-promo-100);
+
+  /* Layout tokens */
+  --gutter: 16px;
+  --container-narrow: 640px;
+  --container-content: 1280px; /* ONE page width everywhere (search, detail, home, the rest): the same left and right margins on every page */
+  --container-wide: 1280px;
+}
+@media (min-width: 640px) { :root { --gutter: 24px; } }
+@media (min-width: 1024px) { :root { --gutter: 40px; } }

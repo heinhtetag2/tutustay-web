@@ -1,0 +1,42 @@
+/* Primitive colours. Raw values only. Components NEVER reference these directly:
+   they use the semantic tokens in semantic.css. Brand #0284C7 is confirmed from dev.tutustay.com. */
+:root {
+  --p-brand-50: #f0f9ff;
+  --p-brand-100: #e0f2fe;
+  --p-brand-200: #bae6fd;
+  --p-brand-300: #7dd3fc;
+  --p-brand-400: #38bdf8;
+  --p-brand-500: #0ea5e9; /* gap-fill: absent from the live scale */
+  --p-brand-600: #0284c7; /* BRAND */
+  --p-brand-700: #0369a1;
+  --p-brand-800: #075985; /* gap-fill */
+  --p-brand-900: #0c4a6e;
+
+  /* Neutrals follow Airbnb's measured palette (hof, foggy, bobo, deco, bebe, faint). */
+  --p-neutral-0: #ffffff;
+  --p-neutral-50: #f7f7f7;  /* faint: subtle surfaces, hover */
+  --p-neutral-100: #f2f2f2; /* disabled / chip fill */
+  --p-neutral-200: #ebebeb; /* bebe: dividers */
+  --p-neutral-300: #dddddd; /* deco: hairlines, outlined buttons */
+  --p-neutral-400: #b0b0b0; /* bobo: disabled text */
+  --p-neutral-450: #8a8a8a; /* control borders, 3.4:1 on white */
+  --p-neutral-500: #6a6a6a; /* foggy: all supporting text, 5.3:1 on white */
+  --p-neutral-600: #484848;
+  --p-neutral-700: #3f3f3f;
+  --p-neutral-800: #2b2b2b;
+  --p-neutral-900: #222222; /* hof: primary text */
+  --p-neutral-950: #222222;
+
+  --p-success-50: #ecfdf3;
+  --p-success-700: #027a48;
+  --p-error-50: #ffe5e5;
+  --p-error-600: #d30005;
+  --p-error-700: #a70e00;
+  --p-warning-50: #fff6ec;
+  --p-warning-700: #cc3702;
+  --p-info-50: #eff8ff;
+  --p-info-700: #175cd3;
+
+  --p-promo-100: #dce8fe;
+  --p-promo-700: #4052eb;
+}

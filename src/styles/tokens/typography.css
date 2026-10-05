@@ -1,0 +1,28 @@
+/* Typography roles (docs/03). Values are desktop; mobile overrides below 640px.
+   Burmese needs taller lines: html[lang="my"] adds --lh-extra. */
+:root { --lh-extra: 0px; }
+html[lang="my"] { --lh-extra: 4px; }
+
+.type-display { font-size: 40px; --lh: 48px; font-weight: 700; letter-spacing: -0.02em; }
+.type-title { font-size: 26px; --lh: 32px; font-weight: 600; letter-spacing: -0.01em; }
+.type-heading { font-size: 22px; --lh: 26px; font-weight: 600; letter-spacing: -0.01em; }
+.type-subheading { font-size: 16px; --lh: 20px; font-weight: 600; }
+.type-body { font-size: 16px; --lh: 24px; font-weight: 400; }
+.type-body-sm { font-size: 14px; --lh: 20px; font-weight: 400; }
+.type-label { font-size: 14px; --lh: 20px; font-weight: 500; }
+.type-caption { font-size: 12px; --lh: 16px; font-weight: 400; } /* never for essential info */
+.type-price-lg { font-size: 22px; --lh: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.type-price-md { font-size: 16px; --lh: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.type-price-sm { font-size: 14px; --lh: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.type-display, .type-title, .type-heading, .type-subheading, .type-body, .type-body-sm,
+.type-label, .type-caption, .type-price-lg, .type-price-md, .type-price-sm {
+  line-height: calc(var(--lh) + var(--lh-extra));
+}
+
+@media (max-width: 639px) {
+  .type-display { font-size: 30px; --lh: 36px; }
+  .type-title { font-size: 22px; --lh: 28px; }
+  .type-heading { font-size: 20px; --lh: 24px; }
+  .type-price-lg { font-size: 20px; --lh: 24px; }
+}
