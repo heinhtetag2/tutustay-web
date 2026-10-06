@@ -32,7 +32,7 @@ export interface SearchParams {
   /** "Stay near you": a single device reading, e.g. "16.8,96.1". Never stored. */
   near?: string;
   /** `list` and `grid` are layouts of the results. `map` is the full-screen map with the list beside it. */
-  view: "list" | "grid" | "map";
+  view: "list" | "grid" | "map" | "split";
   /** "Search on map": south,west,north,east of the visible map. Only set while "update results when map moves" is on. */
   bounds?: string;
   sort: Sort;
@@ -77,7 +77,7 @@ const schema = z.object({
   bookable: bool.catch(false),
   coupons: bool.catch(false),
   near: z.string().regex(/^-?\d{1,3}(\.\d+)?,-?\d{1,3}(\.\d+)?$/).optional().catch(undefined),
-  view: z.preprocess((x) => (x === "cards" ? "grid" : x), z.enum(["list", "grid", "map"])).catch("grid"),
+  view: z.preprocess((x) => (x === "cards" ? "grid" : x), z.enum(["list", "grid", "map", "split"])).catch("split"),
   bounds: z.string().regex(/^-?\d{1,3}(\.\d+)?(,-?\d{1,3}(\.\d+)?){3}$/).optional().catch(undefined),
   sort: z.enum(SORTS).catch("recommended"),
 });
@@ -134,7 +134,7 @@ export function toQueryString(p: Partial<SearchParams>): string {
   set("bookable", p.bookable);
   set("coupons", p.coupons);
   set("near", p.near);
-  if (p.view && p.view !== "grid") set("view", p.view); // grid is the default
+  if (p.view && p.view !== "split") set("view", p.view); // list beside a map is the default
   if (p.view === "map") set("bounds", p.bounds);
   if (p.sort && p.sort !== DEFAULTS.sort) set("sort", p.sort);
   return q.toString();

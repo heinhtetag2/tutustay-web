@@ -107,7 +107,7 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
     router.push(`/${locale}/bookings/${booking.ref}`);
   }
 
-  const dateText = overnight ? `${formatDate(ctx.checkIn)} → ${formatDate(ctx.checkOut)}` : formatDate(ctx.checkIn);
+  const dateText = overnight ? `${formatDate(ctx.checkIn, false, locale)} → ${formatDate(ctx.checkOut, false, locale)}` : formatDate(ctx.checkIn, false, locale);
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CodeFlow } from "@/features/auth/CodeFlow";
 import { isLocale } from "@/i18n/config";
+import { BackLink } from "@/shared/components/BackLink";
 import { Container } from "@/shared/layout/Container";
 
 export const metadata = { title: "Sign up" };
@@ -11,6 +12,7 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
   if (!isLocale(locale)) notFound();
   return (
     <Container size="narrow" className="py-10">
+      <BackLink fallback="/" />
       <Suspense fallback={null}><CodeFlow kind="signup" /></Suspense>
     </Container>
   );

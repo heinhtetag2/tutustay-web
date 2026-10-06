@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { addDays, formatDate, isValidStayRange, nightsBetween, type SessionHours, type StayType } from "@/domain";
-import { useT } from "@/i18n/I18nProvider";
+import { useLocale, useT } from "@/i18n/I18nProvider";
 import { GuestPicker, type GuestState } from "@/shared/components/GuestPicker";
 import { StayTypePicker } from "@/shared/components/StayTypePicker";
 import { DateField } from "@/shared/components/DateField";
@@ -27,6 +27,7 @@ interface Props {
  */
 export function BookingCard({ params, today, offered, fromRate, soldOut, sessionHours }: Props) {
   const t = useT();
+  const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const [error, setError] = useState<string>();
@@ -82,7 +83,7 @@ export function BookingCard({ params, today, offered, fromRate, soldOut, session
         onChange={(e) => apply({ foreigner: e.target.checked })}
       />
       {error ? <p role="alert" className="type-body-sm text-error-text">{error}</p> : null}
-      <p className="type-body-sm text-text-secondary">{t("booking.dates", { from: formatDate(params.checkIn), to: overnight ? formatDate(params.checkOut) : "—" })}</p>
+      <p className="type-body-sm text-text-secondary">{t("booking.dates", { from: formatDate(params.checkIn, false, locale), to: overnight ? formatDate(params.checkOut, false, locale) : "—" })}</p>
       <a href="#rooms" className="type-label inline-flex min-h-12 items-center justify-center rounded-full bg-action-primary px-6 text-text-on-action hover:bg-action-primary-hover">
         {t("booking.seeRooms")}
       </a>

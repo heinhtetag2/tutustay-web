@@ -1,10 +1,12 @@
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { formatKs, todayIso, type PropertyCategory } from "@/domain";
+import { HeroCarousel } from "@/features/home/HeroCarousel";
 import { TrustPoints } from "@/features/home/TrustPoints";
 import { ResultCard } from "@/features/search/ResultCard";
 import { stayCover } from "@/features/stay-detail/photos";
 import { SearchBar } from "@/features/search/SearchBar";
+import { dataLabel } from "@/i18n/dataLabels";
 import { isLocale } from "@/i18n/config";
 import { createT } from "@/i18n/translate";
 import { listPlaces, searchStays } from "@/services/stays.service";
@@ -29,17 +31,20 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      <div className="bg-surface-brand-subtle">
-        <Container size="wide" className="py-10 md:py-16">
-          <h1 className="type-display max-w-3xl">{t("home.title")}</h1>
-          <p className="type-body mt-3 max-w-2xl text-text-secondary">{t("home.subtitle")}</p>
-          <div className="mt-8">
-            <SearchBar
-              variant="hero" today={today} placeOptions={places.map((x) => x.name)}
-              initial={{ place: "", checkIn: p.checkIn, checkOut: p.checkOut, adults: 2, children: 0, rooms: 1, stayType: "overnight", sessionHours: 3, foreigner: false }}
-            />
-          </div>
-        </Container>
+      <div className="relative z-10">
+        <HeroCarousel
+          slides={[
+            { src: "/hero/bagan-balloons.jpg", title: t("home.title"), subtitle: t("home.subtitle"), position: "center 30%" },
+            { src: "/hero/inle-fisherman.jpg", title: t("home.slide2.title"), subtitle: t("home.slide2.body"), position: "center 55%" },
+            { src: "/hero/ngapali-beach.jpg", title: t("home.slide3.title"), subtitle: t("home.slide3.body"), position: "center 55%" },
+            { src: "/hero/inle-sunrise.jpg", title: t("home.slide4.title"), subtitle: t("home.slide4.body"), position: "center 50%" },
+          ]}
+        >
+          <SearchBar
+            variant="hero" today={today} placeOptions={places.map((x) => x.name)}
+            initial={{ place: "", checkIn: p.checkIn, checkOut: p.checkOut, adults: 2, children: 0, rooms: 1, stayType: "overnight", sessionHours: 3, foreigner: false }}
+          />
+        </HeroCarousel>
       </div>
 
       <Container size="wide">
@@ -74,7 +79,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             {places.map((x) => (
               <li key={x.name}>
                 <LocalLink href={`/search?place=${encodeURIComponent(x.name)}`} className="type-label inline-flex min-h-11 items-center rounded-field border border-border-subtle bg-surface-raised px-4 hover:bg-surface-subtle">
-                  {x.name} <span className="ml-2 font-normal text-text-secondary">{x.fromRate !== null ? `${t("home.fromNight", { price: formatKs(x.fromRate) })} · ` : ""}{t(x.count === 1 ? "search.countOne" : "search.count", { n: x.count })}</span>
+                  {dataLabel(locale, x.name)} <span className="ml-2 font-normal text-text-secondary">{x.fromRate !== null ? `${t("home.fromNight", { price: formatKs(x.fromRate) })} · ` : ""}{t(x.count === 1 ? "search.countOne" : "search.count", { n: x.count })}</span>
                 </LocalLink>
               </li>
             ))}

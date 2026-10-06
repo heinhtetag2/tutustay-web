@@ -1,5 +1,6 @@
 import { canTransition, nextStatusesFor, type Booking, type BookingStatus } from "@/domain";
 import { MOCK_PAY_WINDOW_MINUTES } from "@/config/booking";
+import { demoBookings } from "./mocks/bookingDemo";
 import { createLocalStore } from "./mocks/localStore";
 
 /**
@@ -45,4 +46,18 @@ export function nextStatuses(b: Booking): BookingStatus[] {
 
 export function clearMockBookings(): void {
   bookingsStore.set([]);
+}
+
+/**
+ * DEMO: adds the sample bookings once per browser, next to any real mock bookings, so every tab has something to show.
+ * Runs once (flagged in localStorage), so "Clear all mock bookings" removes them for good.
+ */
+export function seedDemoBookings(): void {
+  const flag = "tutustay.mock.demoBookingsSeeded";
+  try {
+    if (window.localStorage.getItem(flag)) return;
+    window.localStorage.setItem(flag, "1");
+  } catch { return; }
+  const have = new Set(bookingsStore.get().map((b) => b.ref));
+  bookingsStore.set([...bookingsStore.get(), ...demoBookings().filter((b) => !have.has(b.ref))]);
 }

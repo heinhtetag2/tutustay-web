@@ -197,11 +197,11 @@ export function DateField({ id, label, kind, checkIn, checkOut, min, onPick, ali
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={`${label}: ${value ? formatDate(value) : t("date.choose")}`}
+        aria-label={`${label}: ${value ? formatDate(value, false, locale) : t("date.choose")}`}
         onClick={() => (open ? close(false) : show())}
         className="date-trigger type-body flex min-h-11 w-full items-center justify-between gap-2 rounded-field border border-border-control bg-surface-raised px-3 text-left"
       >
-        <span className={value ? "" : "text-text-muted"}>{value ? formatDate(value, true) + (value.slice(0, 4) !== min.slice(0, 4) ? ` ${value.slice(0, 4)}` : "") : t("date.choose")}</span>
+        <span className={value ? "" : "text-text-muted"}>{value ? formatDate(value, true, locale) + (value.slice(0, 4) !== min.slice(0, 4) ? ` ${value.slice(0, 4)}` : "") : t("date.choose")}</span>
         <svg aria-hidden viewBox="0 0 16 16" className="size-4 shrink-0 text-text-secondary" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="12" height="11" rx="2" /><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3" /></svg>
       </button>
 

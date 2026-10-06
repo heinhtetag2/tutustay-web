@@ -8,7 +8,7 @@ import { useLocale, useT } from "@/i18n/I18nProvider";
 const CODE: Record<Locale, string> = { en: "EN", my: "MM", ko: "KO" };
 
 /** Dropdown like the live site: current language and code, with the three languages and a check on the active one. */
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ pillCls = "" }: { pillCls?: string }) {
   const locale = useLocale();
   const t = useT();
   const pathname = usePathname();
@@ -16,18 +16,15 @@ export function LanguageSwitcher() {
   const rest = pathname.replace(/^\/[^/]+/, "") || "";
   const href = (l: Locale) => `/${l}${rest}${search ? `?${search}` : ""}`;
   return (
-    <details className="relative">
-      <summary aria-label={t("nav.language")} className="type-label flex min-h-11 cursor-pointer list-none items-center gap-1.5 rounded-control px-3 hover:bg-surface-subtle">
-        <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" /></svg>
-        {CODE[locale]}
-      </summary>
-      <nav aria-label={t("nav.language")} className="absolute right-0 z-20 mt-2 w-44 rounded-card border border-border-subtle bg-surface-raised p-2 shadow-raised">
-        {LOCALES.map((l) => (
-          <Link key={l} href={href(l)} hrefLang={l} lang={l} aria-current={l === locale ? "true" : undefined} className="type-body-sm flex min-h-11 items-center justify-between rounded-control px-3 hover:bg-surface-subtle">
-            <span>{LOCALE_LABEL[l]}</span><span className="text-text-secondary">{l === locale ? "✓" : CODE[l]}</span>
-          </Link>
-        ))}
-      </nav>
-    </details>
+    <nav aria-label={t("nav.language")} className={`${pillCls} gap-0.5 p-1`}>
+      {LOCALES.filter((l) => l !== "ko").map((l) => (
+        <Link
+          key={l} href={href(l)} hrefLang={l} lang={l} aria-current={l === locale ? "true" : undefined} title={LOCALE_LABEL[l]}
+          className={`flex h-8 min-w-9 items-center justify-center rounded-full px-2.5 ${l === locale ? "bg-text-primary text-surface-raised" : "hover:bg-[#0000000f]"}`}
+        >
+          {CODE[l]}
+        </Link>
+      ))}
+    </nav>
   );
 }

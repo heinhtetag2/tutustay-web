@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { useT } from "@/i18n/I18nProvider";
+import { dataLabel } from "@/i18n/dataLabels";
+import { useLocale, useT } from "@/i18n/I18nProvider";
 import { Button } from "@/shared/ui/Button";
 import { amenityIcon } from "./amenityIcons";
 
@@ -10,11 +11,12 @@ const SHOWN = 8;
 /** Icon grid of what the property offers; "Show all" opens the full list in a dialog (Airbnb pattern). */
 export function AmenityGrid({ items }: { items: string[] }) {
   const t = useT();
+  const locale = useLocale();
   const dialog = useRef<HTMLDialogElement>(null);
   const row = (f: string) => (
     <li key={f} className="flex items-center gap-4 py-3">
       <span className="text-text-primary">{amenityIcon(f)}</span>
-      <span className="type-body">{f}</span>
+      <span className="type-body">{dataLabel(locale, f)}</span>
     </li>
   );
   return (

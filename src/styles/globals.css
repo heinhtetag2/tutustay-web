@@ -54,6 +54,16 @@
 body:has([data-container="content"]) .site-width { max-width: var(--container-content); }
 body:has([data-container="narrow"]) .site-width { max-width: var(--container-content); }
 
+/* Full-screen pages (search: list beside a map) have no footer; on wide screens the page is exactly one screen tall and the list scrolls inside it. */
+body:has([data-fullscreen-page]) footer { display: none; }
+@media (min-width: 1024px) {
+  body:has([data-fullscreen-page]) { height: 100svh; overflow: hidden; }
+  body:has([data-fullscreen-page]) main { display: flex; flex-direction: column; min-height: 0; }
+}
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 html { background: var(--surface-page); color: var(--text-primary); }
 body { font-family: var(--font-sans); font-size: 16px; line-height: calc(24px + var(--lh-extra)); -webkit-font-smoothing: antialiased; }
 

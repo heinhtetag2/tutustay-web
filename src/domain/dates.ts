@@ -35,9 +35,21 @@ export function isValidStayRange(checkIn: string, checkOut: string, today: strin
 }
 
 /** One display format across the product: `Mon, 5 Oct 2026` (long) or `5 Oct` (compact). */
-export function formatDate(iso: string, compact = false): string {
+const DATE_LOCALE: Record<string, string> = { en: "en-GB", ko: "ko-KR" };
+
+// Burmese names are fixed here, not left to Intl: browsers ship different Myanmar locale data, which would make server and client render different text.
+const MY_MONTHS = ["ဇန်နဝါရီ", "ဖေဖော်ဝါရီ", "မတ်", "ဧပြီ", "မေ", "ဇွန်", "ဇူလိုင်", "ဩဂုတ်", "စက်တင်ဘာ", "အောက်တိုဘာ", "နိုဝင်ဘာ", "ဒီဇင်ဘာ"];
+const MY_DAYS = ["တနင်္ဂနွေ", "တနင်္လာ", "အင်္ဂါ", "ဗုဒ္ဓဟူး", "ကြာသပတေး", "သောကြာ", "စနေ"];
+
+/** Localised calendar date. Digits stay Latin in every language, matching the rest of the UI. */
+export function formatDate(iso: string, compact = false, locale = "en"): string {
   const d = new Date(`${iso}T00:00:00Z`);
-  return new Intl.DateTimeFormat("en-GB", {
+  if (locale === "my") {
+    const day = `${d.getUTCDate()} ${MY_MONTHS[d.getUTCMonth()]}`;
+    return compact ? day : `${MY_DAYS[d.getUTCDay()]}၊ ${day} ${d.getUTCFullYear()}`;
+  }
+  return new Intl.DateTimeFormat(DATE_LOCALE[locale] ?? "en-GB", {
+    numberingSystem: "latn",
     timeZone: "UTC",
     ...(compact ? { day: "numeric", month: "short" } : { weekday: "short", day: "numeric", month: "short", year: "numeric" }),
   }).format(d);

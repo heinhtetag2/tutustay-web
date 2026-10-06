@@ -22,21 +22,44 @@ export function FaqList() {
   const items = useMemo(() => FAQ.filter((f) => (topic === "all" || f.topic === topic) && `${f.q} ${f.a}`.toLowerCase().includes(q.trim().toLowerCase())), [q, topic]);
   return (
     <div className="flex flex-col gap-4">
-      <Field label={t("help.search")}>{({ id }) => <Input id={id} type="search" value={q} onChange={(e) => setQ(e.target.value)} />}</Field>
+      <Field label={t("help.search")}>
+        {({ id }) => (
+          <div className="relative">
+            <svg aria-hidden viewBox="0 0 24 24" className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-secondary" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="6.500" /><path d="m16 16 4.500 4.500" /></svg>
+            <Input id={id} type="search" value={q} onChange={(e) => setQ(e.target.value)} className="min-h-12 rounded-full pl-12 pr-12 [&::-webkit-search-cancel-button]:hidden" />
+            {q ? (
+              <button type="button" aria-label={t("common.clear")} onClick={() => setQ("")} className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-text-secondary hover:bg-surface-subtle hover:text-text-primary">
+                <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+              </button>
+            ) : null}
+          </div>
+        )}
+      </Field>
       <div role="group" aria-label={t("help.topics")} className="flex flex-wrap gap-2">
         {(["all", "billing", "booking"] as const).map((x) => (
-          <button key={x} type="button" aria-pressed={topic === x} onClick={() => setTopic(x)} className={`type-label min-h-11 rounded-control border px-4 ${topic === x ? "border-border-focus bg-surface-brand-subtle text-text-brand" : "border-border-control"}`}>{t(`help.topic.${x}`)}</button>
+          <button key={x} type="button" aria-pressed={topic === x} onClick={() => setTopic(x)} className={`type-label min-h-11 rounded-full border px-5 transition-colors ${topic === x ? "border-transparent bg-surface-brand-subtle text-text-brand" : "border-border-control hover:bg-surface-subtle"}`}>{t(`help.topic.${x}`)}</button>
         ))}
       </div>
       {items.length === 0 ? (
         <EmptyState title={t("help.empty.title")} body={t("help.empty.body")} />
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-3">
           {items.map((f) => (
             <li key={f.id}>
-              <details id={f.id} open={openId === f.id || undefined} onToggle={(e) => { if (!e.currentTarget.open && openId === f.id) setOpenId(null); }} className="scroll-mt-24 rounded-card border border-border-subtle bg-surface-raised p-4">
-                <summary className="type-label cursor-pointer">{f.q}</summary>
-                <p className="type-body mt-3 text-text-secondary">{f.a}</p>
+              <details
+                id={f.id} open={openId === f.id || undefined}
+                onToggle={(e) => { if (!e.currentTarget.open && openId === f.id) setOpenId(null); }}
+                className="group scroll-mt-24 overflow-hidden rounded-card border border-border-subtle bg-surface-raised transition-colors hover:border-border-control open:border-border-control open:shadow-raised"
+              >
+                <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 [&::-webkit-details-marker]:hidden">
+                  <span className="type-subheading">{f.q}</span>
+                  <span aria-hidden className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-subtle text-text-primary transition-all duration-200 group-open:rotate-180 group-open:bg-surface-brand-subtle group-open:text-text-brand">
+                    <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                  </span>
+                </summary>
+                <div className="anim-rise border-t border-border-subtle px-5 pb-5 pt-4">
+                  <p className="type-body text-text-secondary">{f.a}</p>
+                </div>
               </details>
             </li>
           ))}

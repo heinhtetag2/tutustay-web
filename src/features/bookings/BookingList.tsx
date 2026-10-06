@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatDate, formatKs, todayIso, type Booking } from "@/domain";
-import { useT } from "@/i18n/I18nProvider";
-import { bookingsStore, clearMockBookings } from "@/services/bookings.service";
+import { useLocale, useT } from "@/i18n/I18nProvider";
+import { bookingsStore, clearMockBookings, seedDemoBookings } from "@/services/bookings.service";
 import { LocalLink } from "@/shared/components/LocalLink";
 import { useHydrated } from "@/shared/hooks/useHydrated";
 import { useStore } from "@/shared/hooks/useStore";
@@ -22,10 +22,12 @@ function tabOf(b: Booking, today: string): Tab {
 
 export function BookingList() {
   const t = useT();
+  const locale = useLocale();
   const hydrated = useHydrated();
   const all = useStore(bookingsStore);
   const [tab, setTab] = useState<Tab>("upcoming");
   const today = todayIso();
+  useEffect(() => { if (hydrated) seedDemoBookings(); }, [hydrated]);
   if (!hydrated) return <Skeleton className="h-48 w-full" />;
   const tabs: Tab[] = ["upcoming", "past", "cancelled"];
   const shown = all.filter((b) => tabOf(b, today) === tab);
@@ -52,7 +54,7 @@ export function BookingList() {
               <LocalLink href={`/bookings/${b.ref}`} className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-border-subtle bg-surface-raised p-4 shadow-card hover:shadow-raised">
                 <div>
                   <p className="type-subheading">{b.stayName}</p>
-                  <p className="type-body-sm text-text-secondary">{b.roomName} · {formatDate(b.checkIn, true)}{b.stayType === "overnight" ? ` – ${formatDate(b.checkOut, true)}` : ""} · {b.ref}</p>
+                  <p className="type-body-sm text-text-secondary">{b.roomName} · {formatDate(b.checkIn, true, locale)}{b.stayType === "overnight" ? ` – ${formatDate(b.checkOut, true, locale)}` : ""} · {b.ref}</p>
                 </div>
                 <div className="flex items-center gap-3"><StatusBadge status={b.status} /><span className="type-price-sm">{formatKs(b.price.total)}</span></div>
               </LocalLink>

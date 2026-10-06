@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { LEGAL, findLegal } from "@/features/legal/content";
 import { LOCALES, isLocale } from "@/i18n/config";
 import { createT } from "@/i18n/translate";
+import { BackLink } from "@/shared/components/BackLink";
 import { Container } from "@/shared/layout/Container";
 import { LocalLink } from "@/shared/components/LocalLink";
 import { StatusBanner } from "@/shared/ui/StatusBanner";
@@ -23,6 +24,7 @@ export default async function LegalPage({ params }: { params: Promise<{ locale: 
   const t = createT(locale);
   return (
     <Container size="narrow" className="py-8">
+      <BackLink fallback="/" />
       <p className="type-label text-text-secondary">{t("legal.label")}</p>
       <h1 className="type-title mt-1">{d.title}</h1>
       <p className="type-body mt-2 text-text-secondary">{d.intro}</p>

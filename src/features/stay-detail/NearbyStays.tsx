@@ -18,7 +18,7 @@ export async function NearbyStays({ stay, locale, params, query }: { stay: Stay;
       <h2 className="type-heading">{t("stay.nearby")}</h2>
       <p className="type-body mb-6 text-text-secondary">{t("stay.nearbyHint", { city: stay.place.city })}</p>
       <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-        {others.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={query} stayType={params.stayType} foreigner={params.foreigner} layout="card" compare={false} />)}
+        {others.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={query} stayType={params.stayType} foreigner={params.foreigner} layout="card" />)}
       </ul>
     </Section>
   );

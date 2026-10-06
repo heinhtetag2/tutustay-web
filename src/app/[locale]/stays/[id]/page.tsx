@@ -97,7 +97,7 @@ export default async function StayPage({ params, searchParams }: Props) {
               <StatusBanner tone="warning" title={t("stay.soldOut")} className="mb-4">
                 {nextStart ? (
                   <>
-                    {t("stay.nextAvailable", { date: formatDate(nextStart) })}{" "}
+                    {t("stay.nextAvailable", { date: formatDate(nextStart, false, locale) })}{" "}
                     <LocalLink className="text-text-link underline" href={`/stays/${id}?${toQueryString({ ...p, checkIn: nextStart, checkOut: addDays(nextStart, nights) })}`}>{t("stay.useDates")}</LocalLink>
                   </>
                 ) : t("stay.noDates")}

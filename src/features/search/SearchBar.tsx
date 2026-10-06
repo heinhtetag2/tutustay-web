@@ -77,8 +77,8 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
     );
   }
 
-  const summary = `${place || t("search.anywhere")} · ${formatDate(checkIn, true)}${
-    overnight ? ` – ${formatDate(checkOut, true)}` : ""
+  const summary = `${place || t("search.anywhere")} · ${formatDate(checkIn, true, locale)}${
+    overnight ? ` – ${formatDate(checkOut, true, locale)}` : ""
   } · ${t(`stayType.${stay.stayType}`)}`;
 
   return (

@@ -7,5 +7,3 @@ export const claimedCouponsStore = createLocalStore<string[]>("claimedCoupons", 
 export const favoritesStore = createLocalStore<string[]>("favorites", []);
 
 /** Stays picked for side-by-side comparison. Mock: stored in this browser only. */
-export const compareStore = createLocalStore<string[]>("compare", []);
-export const MAX_COMPARE = 4;

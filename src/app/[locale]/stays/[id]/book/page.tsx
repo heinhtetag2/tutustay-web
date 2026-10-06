@@ -33,7 +33,7 @@ export default async function BookPage({ params, searchParams }: Props) {
 
   return (
     <Container className="py-8">
-      <PageHeader title={t("review.title")} description={stay.name} />
+      <PageHeader back={`/stays/${id}`} title={t("review.title")} description={stay.name} />
       {!bookable || !room ? (
         // Recovery: the selection is preserved in the URL, so "Back to rooms" restores the same search.
         <ErrorState
