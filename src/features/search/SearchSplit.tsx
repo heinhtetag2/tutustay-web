@@ -53,19 +53,19 @@ export function SearchSplit({ items, query, stayType, foreigner, title, controls
 
   return (
     <div data-fullscreen-page className={`min-h-0 flex-1 flex-col ${className ?? "flex"}`}>
-    <div className="relative z-30 shrink-0 border-b border-border-subtle bg-surface-brand-subtle px-4 py-3 sm:px-6 md:px-8">
+    <div className="relative z-30 shrink-0 border-b border-border-subtle bg-surface-brand-subtle px-4 py-2 sm:px-6 md:px-8 lg:py-3">
       <div>{searchBar}</div>
       {notice}
     </div>
     <div className="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
       <section aria-label={t("search.results")} className="min-w-0 px-4 pb-24 sm:px-6 md:px-8 no-scrollbar lg:min-h-0 lg:overflow-y-auto lg:pb-8">
-        <div className="mb-2 flex items-start justify-between gap-4 py-4">
+        <div className="mb-2 flex flex-col gap-4 py-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <h1 className="type-subheading">{title}</h1>
             <p className="type-body-sm mt-1 text-text-secondary">{t("search.trust")}</p>
             <LocalLink href="/about" className="type-label mt-1 inline-block text-text-link underline underline-offset-4">{t("search.trustLink")}</LocalLink>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">{controls}</div>
+          <div className="order-first flex flex-wrap items-center gap-3 sm:order-none sm:shrink-0 sm:justify-end">{controls}</div>
         </div>
         {items.length === 0 ? (
           <EmptyState title={empty.title} body={empty.body} action={empty.action} />

@@ -67,8 +67,8 @@ export function AccountShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="mx-auto w-full max-w-[var(--container-content)] px-[var(--gutter)] py-6 md:py-10">
-      <div className="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-10">
-        <nav aria-label={t("account.nav.label")} className="lg:sticky lg:top-6 lg:self-start">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-10">
+        <nav aria-label={t("account.nav.label")} className="min-w-0 lg:sticky lg:top-6 lg:self-start">
           <ul className="no-scrollbar -mx-[var(--gutter)] flex gap-2 overflow-x-auto px-[var(--gutter)] pb-1 lg:hidden">
             {[...items, ...secondary].map((it) => {
               const on = "abs" in it ? false : isOn(it.href);

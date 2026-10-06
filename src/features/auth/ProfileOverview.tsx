@@ -12,6 +12,7 @@ import { submittedReviewsStore } from "@/services/reviews.service";
 import { stayCover } from "@/features/stay-detail/photos";
 import { StatusBadge } from "@/features/bookings/StatusBadge";
 import { LocalLink } from "@/shared/components/LocalLink";
+import { NrcField } from "@/shared/components/NrcField";
 import { useMockSession } from "@/shared/hooks/useMockSession";
 import { useStore } from "@/shared/hooks/useStore";
 import { Button, LinkButton } from "@/shared/ui/Button";
@@ -46,8 +47,8 @@ export function ProfileOverview() {
   const initial = (name || "?").trim().charAt(0).toUpperCase();
   const recent = useMemo(() => bookings.slice(0, 3), [bookings]);
 
-  const startEdit = () => { setDraft({ name, phone: profile.phone ?? session?.phone ?? "", country }); setDone(false); setEditing(true); };
-  const save = () => { profileStore.set({ ...draft, name: draft.name?.trim() ?? "", phone: draft.phone?.trim() ?? "" }); setEditing(false); setDone(true); };
+  const startEdit = () => { setDraft({ name, phone: profile.phone ?? session?.phone ?? "", country, nrc: profile.nrc ?? "", address: profile.address ?? "" }); setDone(false); setEditing(true); };
+  const save = () => { profileStore.set({ ...draft, name: draft.name?.trim() ?? "", phone: draft.phone?.trim() ?? "", nrc: draft.nrc?.trim() ?? "", address: draft.address?.trim() ?? "" }); setEditing(false); setDone(true); };
 
   const fact = (label: string, value: string) => (
     <div className="min-w-0">
@@ -57,10 +58,10 @@ export function ProfileOverview() {
   );
 
   const stats = [
-    { n: bookings.length, label: t("profile.stat.bookings"), link: t("profile.view.bookings"), href: "/account/bookings", tint: "bg-surface-brand-subtle text-text-brand", icon: <><rect x="4" y="5" width="16" height="15" rx="2.5" /><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4" /></> },
-    { n: saved, label: t("profile.stat.saved"), link: t("profile.view.saved"), href: "/account/favorites", tint: "bg-error-bg text-error-text", icon: <path d="M12 20s-7-4.400-7-10a4 4 0 0 1 7-2.600A4 4 0 0 1 19 10c0 5.600-7 10-7 10Z" /> },
-    { n: coupons, label: t("profile.stat.coupons"), link: t("profile.view.coupons"), href: "/account/promo-codes", tint: "bg-promo-bg text-promo-text", icon: <><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4Z" /><path d="M14 6v12" strokeDasharray="2 2.500" /></> },
-    { n: reviews, label: t("profile.stat.reviews"), link: t("profile.view.reviews"), href: "/account/reviews", tint: "bg-warning-bg text-warning-text", icon: <path d="m12 3.500 2.600 5.300 5.800.800-4.200 4.100 1 5.800L12 16.800 6.800 19.500l1-5.800-4.200-4.100 5.800-.800Z" /> },
+    { n: bookings.length, label: t("profile.stat.bookings"), href: "/account/bookings", tint: "bg-surface-brand-subtle text-text-brand", icon: <><rect x="4" y="5" width="16" height="15" rx="2.5" /><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4" /></> },
+    { n: saved, label: t("profile.stat.saved"), href: "/account/favorites", tint: "bg-error-bg text-error-text", icon: <path d="M12 20s-7-4.400-7-10a4 4 0 0 1 7-2.600A4 4 0 0 1 19 10c0 5.600-7 10-7 10Z" /> },
+    { n: coupons, label: t("profile.stat.coupons"), href: "/account/promo-codes", tint: "bg-promo-bg text-promo-text", icon: <><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4Z" /><path d="M14 6v12" strokeDasharray="2 2.500" /></> },
+    { n: reviews, label: t("profile.stat.reviews"), href: "/account/reviews", tint: "bg-warning-bg text-warning-text", icon: <path d="m12 3.500 2.600 5.300 5.800.800-4.200 4.100 1 5.800L12 16.800 6.800 19.500l1-5.800-4.200-4.100 5.800-.800Z" /> },
   ];
 
   return (
@@ -74,7 +75,7 @@ export function ProfileOverview() {
         <div className="flex items-center justify-between gap-3">
           <h2 id="pi" className="type-heading">{t("profile.info")}</h2>
           {!editing ? (
-            <Button variant="ghost" onClick={startEdit}>
+            <Button variant="ghost" className="shrink-0 whitespace-nowrap" onClick={startEdit}>
               <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9l-4-4L4 16Z" /><path d="m13.500 6.500 4 4" /></svg>
               {t("profile.edit")}
             </Button>
@@ -84,13 +85,15 @@ export function ProfileOverview() {
         {done ? <p role="status" className="type-body-sm mt-2 rounded-field bg-success-bg px-3 py-2 text-success-text">{t("profile.saved")}</p> : null}
 
         <div className="mt-5 flex flex-col gap-6 sm:flex-row">
-          <span aria-hidden className="flex size-24 shrink-0 items-center justify-center rounded-full bg-surface-brand-subtle text-4xl font-semibold text-text-brand sm:size-28">{initial}</span>
+          <span aria-hidden className="flex size-16 shrink-0 items-center justify-center rounded-full bg-surface-brand-subtle text-2xl font-semibold text-text-brand sm:size-28 sm:text-4xl">{initial}</span>
           {!editing ? (
             <dl className="grid flex-1 gap-x-8 gap-y-5 sm:grid-cols-2 xl:grid-cols-3">
               {fact(t("profile.name"), name)}
               {fact(t("profile.email"), session?.email ?? "")}
               {fact(t("profile.phone"), profile.phone || session?.phone || "")}
               {fact(t("profile.country"), countryName(country, locale))}
+              {fact(t("profile.nrc"), profile.nrc ?? "")}
+              {fact(t("profile.address"), profile.address ?? "")}
               {fact(t("profile.language"), LOCALE_LABEL[locale])}
               {fact(t("profile.currency"), "MMK (Kyat)")}
             </dl>
@@ -101,11 +104,17 @@ export function ProfileOverview() {
               <Field label={t("profile.phone")}>{({ id }) => <Input id={id} type="tel" inputMode="tel" autoComplete="tel" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />}</Field>
               <Field label={t("profile.country")}>
                 {({ id }) => (
-                  <Select id={id} value={draft.country ?? "MM"} onChange={(e) => setDraft({ ...draft, country: e.target.value })}>
+                  <Select id={id} value={draft.country ?? "MM"} onChange={(e) => setDraft({ ...draft, country: e.target.value, nrc: "" })}>
                     {COUNTRIES.map((c) => <option key={c} value={c}>{countryName(c, locale)}</option>)}
                   </Select>
                 )}
               </Field>
+              {(draft.country ?? "MM") === "MM" ? (
+                <NrcField label={t("profile.nrc")} hint={t("flow.optionalHint")} value={draft.nrc ?? ""} onChange={(v) => setDraft({ ...draft, nrc: v })} className="sm:col-span-2" />
+              ) : (
+                <Field label={t("profile.passport")}>{({ id }) => <Input id={id} autoComplete="off" value={draft.nrc ?? ""} onChange={(e) => setDraft({ ...draft, nrc: e.target.value })} />}</Field>
+              )}
+              <Field label={t("profile.address")} className="sm:col-span-2">{({ id }) => <Input id={id} autoComplete="street-address" value={draft.address ?? ""} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />}</Field>
               <div className="flex flex-wrap gap-3 sm:col-span-2">
                 <Button type="submit">{t("profile.save")}</Button>
                 <Button variant="secondary" onClick={() => setEditing(false)}>{t("profile.cancel")}</Button>
@@ -115,12 +124,18 @@ export function ProfileOverview() {
         </div>
         <p className="type-body-sm mt-5 text-text-secondary">{t("account.mock")}</p>
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-field bg-surface-brand-subtle p-4">
-          <div className="flex items-start gap-3">
-            <svg aria-hidden viewBox="0 0 24 24" className="mt-0.5 size-6 shrink-0 text-text-brand" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m4 8 4.500 4L12 5l3.500 7L20 8l-1.500 10h-13Z" /></svg>
-            <div><p className="type-label">{t("profile.rewards")}</p><p className="type-body-sm text-text-secondary">{t("profile.rewardsBody")}</p></div>
+        <div className="relative mt-5 flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-card border border-[#bae6fd] bg-gradient-to-br from-[#e0f2fe] via-[#f0f9ff] to-surface-raised p-5">
+          <svg aria-hidden viewBox="0 0 24 24" className="pointer-events-none absolute -right-4 -top-6 size-32 text-brand opacity-[0.07]" fill="currentColor"><path d="m12 2 2.400 6.600L21 11l-6.600 2.400L12 20l-2.400-6.600L3 11l6.600-2.400Z" /></svg>
+          <div className="relative flex items-center gap-4">
+            <span aria-hidden className="flex size-12 shrink-0 items-center justify-center rounded-full bg-surface-raised text-text-brand shadow-card ring-1 ring-[#bae6fd]">
+              <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M12 8v13M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7M7.500 8a2.500 2.500 0 0 1 0-5C11 3 12 8 12 8s1-5 4.500-5a2.500 2.500 0 0 1 0 5" /></svg>
+            </span>
+            <div>
+              <p className="type-subheading">{t("profile.rewards")}</p>
+              <p className="type-body-sm mt-0.5 max-w-md text-text-secondary">{t("profile.rewardsBody")}</p>
+            </div>
           </div>
-          <LinkButton href="/account/promo-codes?tab=all" variant="secondary">{t("profile.browseDeals")}</LinkButton>
+          <LinkButton href="/account/promo-codes?tab=all" className="relative">{t("profile.browseDeals")}</LinkButton>
         </div>
       </section>
 
@@ -128,17 +143,17 @@ export function ProfileOverview() {
         <h2 id="as" className="type-heading">{t("profile.summary")}</h2>
         <ul className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-field bg-border-subtle lg:grid-cols-4">
           {stats.map((s) => (
-            <li key={s.href} className="bg-surface-raised p-4">
-              <div className="flex items-center gap-3">
+            <li key={s.href} className="bg-surface-raised">
+              <LocalLink href={s.href} className="group flex h-full items-center gap-3 p-4 transition-colors hover:bg-surface-subtle">
                 <span aria-hidden className={`flex size-11 shrink-0 items-center justify-center rounded-full ${s.tint}`}>
                   <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{s.icon}</svg>
                 </span>
-                <div className="min-w-0">
-                  <p className="type-heading leading-none">{s.n}</p>
-                  <p className="type-body-sm mt-1 text-text-secondary">{s.label}</p>
-                </div>
-              </div>
-              <LocalLink href={s.href} className="type-label mt-3 inline-block text-text-link underline-offset-4 hover:underline">{s.link}</LocalLink>
+                <span className="min-w-0 flex-1">
+                  <span className="type-heading block leading-none">{s.n}</span>
+                  <span className="type-body-sm mt-1 block text-text-secondary">{s.label}</span>
+                </span>
+                <span aria-hidden className="text-text-secondary transition-transform group-hover:translate-x-0.5">›</span>
+              </LocalLink>
             </li>
           ))}
         </ul>

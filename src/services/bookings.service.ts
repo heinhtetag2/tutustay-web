@@ -1,6 +1,6 @@
 import { canTransition, nextStatusesFor, type Booking, type BookingStatus } from "@/domain";
-import { MOCK_PAY_WINDOW_MINUTES } from "@/config/booking";
-import { demoBookings } from "./mocks/bookingDemo";
+import { MOCK_PAY_WINDOW_MINUTES, MOCK_RESPONSE_WINDOW_MINUTES } from "@/config/booking";
+import { demoBookings, isDemoBooking } from "./mocks/bookingDemo";
 import { createLocalStore } from "./mocks/localStore";
 
 /**
@@ -44,20 +44,28 @@ export function nextStatuses(b: Booking): BookingStatus[] {
   return nextStatusesFor(b);
 }
 
+/** Clears the bookings you made while testing. The sample bookings stay, so every tab keeps something to show. */
 export function clearMockBookings(): void {
-  bookingsStore.set([]);
+  bookingsStore.set(bookingsStore.get().filter((b) => isDemoBooking(b.ref)));
 }
 
 /**
- * DEMO: adds the sample bookings once per browser, next to any real mock bookings, so every tab has something to show.
- * Runs once (flagged in localStorage), so "Clear all mock bookings" removes them for good.
+ * DEMO: puts the sample bookings next to any real mock bookings, so every tab has something to show.
+ * Versioned: when the sample set changes, the old samples are swapped for the new ones (your own bookings are never touched).
  */
+const DEMO_VERSION = "2";
 export function seedDemoBookings(): void {
   const flag = "tutustay.mock.demoBookingsSeeded";
   try {
-    if (window.localStorage.getItem(flag)) return;
-    window.localStorage.setItem(flag, "1");
+    if (window.localStorage.getItem(flag) === DEMO_VERSION) return;
+    window.localStorage.setItem(flag, DEMO_VERSION);
   } catch { return; }
-  const have = new Set(bookingsStore.get().map((b) => b.ref));
-  bookingsStore.set([...bookingsStore.get(), ...demoBookings().filter((b) => !have.has(b.ref))]);
+  bookingsStore.set([...bookingsStore.get().filter((b) => !isDemoBooking(b.ref)), ...demoBookings()]);
+}
+
+/** What the guest is waiting on, and by when: the property's answer (pending) or the online deposit (accepted). */
+export function bookingDeadline(b: Booking): { kind: "answer" | "pay"; at: number } | null {
+  if (b.status === "pending") return { kind: "answer", at: new Date(b.createdAt).getTime() + MOCK_RESPONSE_WINDOW_MINUTES * 60_000 };
+  if (b.status === "accepted" && b.mode === "online" && b.payBy) return { kind: "pay", at: new Date(b.payBy).getTime() };
+  return null;
 }

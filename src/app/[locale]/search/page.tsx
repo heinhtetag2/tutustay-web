@@ -59,6 +59,9 @@ export default async function SearchPage({
         items={items} query={carry} stayType={p.stayType} foreigner={p.foreigner} boundsOn={Boolean(p.bounds)}
         closeQuery={toQueryString({ ...p, view: "split", bounds: undefined })}
         summary={`${p.place || t("search.anywhere")} · ${formatDate(p.checkIn, true, locale)}${nights} · ${guestSummaryText(t, p.adults + p.children, p.rooms)}`}
+        summaryPlace={p.place || t("search.anywhere")}
+        summaryWhen={`${formatDate(p.checkIn, true, locale)}${nights} · ${p.adults + p.children === 1 ? t("guests.guestOne") : t("guests.guestMany", { n: p.adults + p.children })}`}
+        searchBar={searchBar}
         sidebar={<Filters params={p} sidebar />}
         sheet={<Filters params={p} sheetOnly />}
         controls={<><SortSelect params={p} />{p.near ? null : <NearMeButton active={false} />}</>}
@@ -79,7 +82,7 @@ export default async function SearchPage({
     return (
       <>
         <div className="lg:hidden">
-        <div className="relative z-30 border-b border-border-subtle bg-surface-brand-subtle px-4 py-3 sm:px-6 md:px-8">
+        <div className="relative z-30 border-b border-border-subtle bg-surface-brand-subtle px-4 py-2 sm:px-6 md:px-8 lg:py-3">
           {searchBar}
           {datesRepaired ? <StatusBanner tone="warning" className="mt-3">{t("search.datesRepaired")}</StatusBanner> : null}
         </div>

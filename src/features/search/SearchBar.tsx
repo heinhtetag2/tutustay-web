@@ -9,6 +9,7 @@ import { Button } from "@/shared/ui/Button";
 import { Field, Input } from "@/shared/ui/Field";
 import { DateField } from "@/shared/components/DateField";
 import { PlaceCombobox } from "./PlaceCombobox";
+import { MobileSearchSheet } from "./MobileSearchSheet";
 import { toQueryString, type SearchParams } from "@/validation/search";
 
 interface Props {
@@ -39,7 +40,8 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
     foreigner: initial.foreigner,
   });
   const [error, setError] = useState<string>();
-  const [open, setOpen] = useState(variant === "hero");
+  const [open] = useState(variant === "hero");
+  const [sheet, setSheet] = useState(false);
 
   const overnight = stay.stayType === "overnight";
   const [nearState, setNearState] = useState<"idle" | "asking" | "denied" | "unavailable">("idle");
@@ -77,25 +79,27 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
     );
   }
 
-  const summary = `${place || t("search.anywhere")} · ${formatDate(checkIn, true, locale)}${
-    overnight ? ` – ${formatDate(checkOut, true, locale)}` : ""
-  } · ${t(`stayType.${stay.stayType}`)}`;
+  const guestTotal = guests.adults + guests.children;
+  const summaryPlace = place || t("search.anywhere");
+  const summaryWhen = `${formatDate(checkIn, true, locale)}${overnight ? ` – ${formatDate(checkOut, true, locale)}` : ""} · ${guestTotal === 1 ? t("guests.guestOne") : t("guests.guestMany", { n: guestTotal })}`;
 
   return (
-    <form onSubmit={onSubmit} aria-label={t("search.label")} className={`rounded-card bg-surface-raised p-4 shadow-[0_2px_12px_#0000001a] md:p-6 ${variant === "summary" ? "border border-border-subtle shadow-none lg:border-0 lg:bg-transparent lg:p-0" : "lg:bg-transparent lg:p-0 lg:shadow-none"}`}>
+    <form onSubmit={onSubmit} aria-label={t("search.label")} className={`rounded-card bg-surface-raised shadow-[0_2px_12px_#0000001a] ${variant === "summary" ? "lg:border-0 lg:bg-transparent lg:shadow-none" : "p-4 md:p-6 lg:bg-transparent lg:p-0 lg:shadow-none"}`}>
       {variant === "summary" ? (
         <button
           type="button"
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
-          className="type-label flex min-h-11 w-full items-center justify-between gap-3 text-left lg:hidden"
+          aria-haspopup="dialog" aria-label={`${summaryPlace}, ${summaryWhen}`}
+          onClick={() => setSheet(true)}
+          className="type-label flex min-h-12 w-full items-center justify-between gap-3 px-4 text-left lg:hidden"
         >
-          <span>{summary}</span>
-          <span className="text-text-link">{open ? t("search.close") : t("search.edit")}</span>
+          <span className="min-w-0 truncate font-semibold">{summaryPlace}</span>
+          <span className="type-body-sm shrink-0 text-text-secondary">
+            {summaryWhen}
+          </span>
         </button>
       ) : null}
 
-      <div className={`${variant === "summary" && !open ? "hidden lg:block" : ""} ${variant === "summary" ? "mt-4 lg:mt-0" : ""}`}>
+      <div className={`${variant === "summary" && !open ? "hidden lg:block" : ""} ${variant === "summary" ? "px-4 pb-4 pt-1 lg:p-0" : ""}`}>
         <div className="search-pill grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_auto] lg:items-center lg:gap-0 lg:rounded-full lg:border lg:border-border-subtle lg:bg-surface-raised lg:py-2 lg:pl-3 lg:pr-2 lg:shadow-[0_3px_12px_#0000001a] lg:hover:shadow-[0_6px_20px_#00000026] lg:transition-shadow
           lg:[&>*:not(:last-child)]:border-r lg:[&>*:not(:last-child)]:border-border-subtle lg:[&>*:not(:last-child)]:px-5 lg:[&>div]:gap-0.5
           lg:[&_label]:text-xs lg:[&_label]:font-semibold lg:[&_span.type-label]:text-xs lg:[&_span.type-label]:font-semibold
@@ -136,6 +140,14 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
           </p>
         ) : null}
       </div>
+      {variant === "summary" ? (
+        <MobileSearchSheet
+          open={sheet} onClose={() => setSheet(false)} overnight={overnight} today={today} placeOptions={placeOptions} error={error}
+          value={{ place, checkIn, checkOut, guests }}
+          onChange={(v) => { setPlace(v.place); setCheckIn(v.checkIn); setCheckOut(v.checkOut); setGuests(v.guests); }}
+          onSubmit={() => search()}
+        />
+      ) : null}
     </form>
   );
 }

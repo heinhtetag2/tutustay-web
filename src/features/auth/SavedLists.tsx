@@ -50,7 +50,14 @@ export function MyReviewsList() {
     <ul className="flex flex-col gap-3">
       {[...mine, ...DEMO_REVIEWS].map((r) => (
         <li key={r.ref} className="rounded-card border border-border-subtle bg-surface-raised p-4">
-          <p className="type-subheading">{r.stayName} · {r.rating}/5</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="type-subheading">{r.stayName}</p>
+            <span role="img" aria-label={`${r.rating}/5`} className="inline-flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <svg key={n} aria-hidden viewBox="0 0 24 24" className={`size-5 ${n <= r.rating ? "text-[#f59e0b]" : "text-border-control"}`} fill="currentColor"><path d="m12 2.500 2.900 6 6.600.9-4.800 4.600 1.200 6.500L12 17.300l-5.900 3.200 1.200-6.500L2.500 9.400l6.600-.9Z" /></svg>
+              ))}
+            </span>
+          </div>
           {r.when ? <p className="type-body-sm text-text-secondary">{r.when}</p> : null}
           {r.text ? <p className="type-body mt-1">{r.text}</p> : null}
         </li>

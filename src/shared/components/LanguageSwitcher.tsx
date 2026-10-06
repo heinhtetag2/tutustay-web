@@ -20,7 +20,7 @@ export function LanguageSwitcher({ pillCls = "" }: { pillCls?: string }) {
       {LOCALES.filter((l) => l !== "ko").map((l) => (
         <Link
           key={l} href={href(l)} hrefLang={l} lang={l} aria-current={l === locale ? "true" : undefined} title={LOCALE_LABEL[l]}
-          className={`flex h-8 min-w-9 items-center justify-center rounded-full px-2.5 ${l === locale ? "bg-text-primary text-surface-raised" : "hover:bg-[#0000000f]"}`}
+          className={`flex h-10 min-w-10 items-center justify-center rounded-full px-2.5 ${l === locale ? "bg-text-primary text-surface-raised" : "hover:bg-[#0000000f]"}`}
         >
           {CODE[l]}
         </Link>

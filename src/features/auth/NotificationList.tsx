@@ -43,7 +43,7 @@ export function NotificationList() {
       <div role="group" aria-label={t("account.nav.notifications")} className="flex gap-2">
         {(["all", "unread"] as const).map((f) => (
           <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)}
-            className={`type-label min-h-11 rounded-full border px-4 ${filter === f ? "border-text-primary bg-surface-subtle" : "border-border-subtle bg-surface-raised hover:bg-surface-subtle"}`}>
+            className={`type-label min-h-11 rounded-full border px-4 ${filter === f ? "border-border-focus bg-surface-brand-subtle font-semibold text-text-brand" : "border-border-subtle bg-surface-raised hover:bg-surface-subtle"}`}>
             {t(f === "all" ? "notif.all" : "notif.unread")}{f === "unread" && unread ? ` (${unread})` : ""}
           </button>
         ))}
@@ -52,23 +52,26 @@ export function NotificationList() {
       {shown.length === 0 ? (
         <EmptyState title={t("notif.empty")} body={t("notif.emptyBody")} />
       ) : (
-        <ul className="overflow-hidden rounded-card border border-border-subtle bg-surface-raised">
+        <ul className="flex flex-col gap-3">
           {shown.map((n) => {
             const isNew = !read.includes(n.id);
+            const tint = n.kind === "deal" ? "bg-[#fef3c7] text-[#92400e]" : n.kind === "welcome" ? "bg-[#ede9fe] text-[#5b21b6]" : "bg-surface-brand-subtle text-text-brand";
             const inner = (
               <>
-                <span aria-hidden className="flex size-11 shrink-0 items-center justify-center rounded-full bg-surface-brand-subtle text-text-brand">
+                <span aria-hidden className={`flex size-11 shrink-0 items-center justify-center rounded-full ${tint}`}>
                   <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{ICON[n.kind]}</svg>
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className={`type-label block ${isNew ? "" : "font-normal"}`}>{n.title}</span>
-                  <span className="type-body-sm block text-text-secondary">{n.body}</span>
-                  {n.at ? <span className="type-body-sm block text-text-muted">{formatDate(n.at.slice(0, 10), false, locale)}</span> : null}
+                  <span className="flex items-start justify-between gap-3">
+                    <span className={`type-label block ${isNew ? "font-semibold" : ""}`}>{n.title}</span>
+                    {n.at ? <span className="type-caption shrink-0 whitespace-nowrap text-text-muted">{formatDate(n.at.slice(0, 10), true, locale)}</span> : null}
+                  </span>
+                  <span className="type-body-sm mt-0.5 block text-text-secondary">{n.body}</span>
                 </span>
-                {isNew ? <span className="mt-1 size-2.5 shrink-0 rounded-full bg-action-primary"><span className="sr-only">{t("notif.unread")}</span></span> : null}
+                {isNew ? <span className="mt-1.5 size-2.5 shrink-0 rounded-full bg-action-primary"><span className="sr-only">{t("notif.unread")}</span></span> : null}
               </>
             );
-            const cls = "flex items-start gap-4 border-b border-border-subtle p-4 last:border-b-0 hover:bg-surface-subtle";
+            const cls = `relative flex items-start gap-4 overflow-hidden rounded-card border p-4 transition-shadow hover:shadow-raised ${isNew ? "border-[#bae6fd] bg-surface-brand-subtle" : "border-border-subtle bg-surface-raised"}`;
             return (
               <li key={n.id}>
                 {n.href ? <LocalLink href={n.href} onClick={() => markRead(n.id)} className={cls}>{inner}</LocalLink> : <button type="button" onClick={() => markRead(n.id)} className={`${cls} w-full cursor-pointer text-left`}>{inner}</button>}

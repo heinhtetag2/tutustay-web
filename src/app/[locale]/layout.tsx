@@ -6,6 +6,8 @@ import { I18nProvider } from "@/i18n/I18nProvider";
 import { LOCALES, isLocale } from "@/i18n/config";
 import { createT } from "@/i18n/translate";
 import { Footer } from "@/shared/components/Footer";
+import { AuthDialog } from "@/features/auth/AuthDialog";
+import { ActiveBookingBar } from "@/features/bookings/ActiveBookingBar";
 import { Header } from "@/shared/components/Header";
 import "@/styles/globals.css";
 
@@ -37,6 +39,8 @@ export default async function LocaleLayout({ children, params }: { children: Rea
           <Header />
           <main id="main" className="flex-1">{children}</main>
           <Footer locale={locale} />
+          <AuthDialog />
+          <ActiveBookingBar />
         </I18nProvider>
       </body>
     </html>

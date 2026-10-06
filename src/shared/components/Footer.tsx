@@ -6,7 +6,7 @@ import { LocalLink } from "./LocalLink";
 export function Footer({ locale }: { locale: Locale }) {
   const t = createT(locale);
   const groups = [
-    { title: t("footer.explore"), links: [["/destinations", t("destinations.title")], ["/deals", t("footer.dealsCoupons")], ["/download", t("download.title")], ["/about", t("about.title")]] },
+    { title: t("footer.explore"), links: [["/destinations", t("destinations.title")], ["/account/promo-codes?tab=all", t("footer.dealsCoupons")], ["/download", t("download.title")], ["/about", t("about.title")]] },
     { title: t("footer.support"), links: [["/help", t("footer.helpCentre")], ["/help/faq", t("footer.faq")], ["/guide", t("footer.guide")], ["/help/contact", t("footer.contact")], ["/help/inquiry", t("footer.qa")]] },
     { title: t("footer.account"), links: [["/account/bookings", t("nav.myBookings")], ["/account/favorites", t("fav.title")], ["/account/reviews", t("account.reviews")], ["/account", t("account.title")]] },
     { title: t("footer.partners"), links: [["/partners", t("partners.title")], ["/partners/apply", t("partners.apply")]] },

@@ -3,17 +3,51 @@
 import { cancellationRoute, formatDate, needsOnlinePayment, type Booking, type BookingStatus } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { PriceBreakdown } from "@/features/booking/PriceBreakdown";
-import { nextStatuses, transitionBooking } from "@/services/bookings.service";
+import { bookingDeadline, nextStatuses, transitionBooking } from "@/services/bookings.service";
 import { LocalLink } from "@/shared/components/LocalLink";
 import { PaymentModeBadge } from "@/shared/components/PaymentModeBadge";
 import { Button, LinkButton } from "@/shared/ui/Button";
-import { StatusBanner } from "@/shared/ui/StatusBanner";
+import { formatCountdown, useCountdown } from "@/shared/hooks/useCountdown";
 import { ReviewForm } from "./ReviewForm";
 import { StatusBadge } from "./StatusBadge";
 
-const TONE: Record<BookingStatus, "info" | "success" | "warning" | "error"> = {
-  pending: "info", accepted: "warning", confirmed: "success", overdue: "error", rejected: "error", cancelled: "info", completed: "success",
+const HERO: Record<BookingStatus, { tone: string; icon: React.ReactNode }> = {
+  pending: { tone: "from-[#dcfce7] via-[#f0fdf4] to-surface-raised border-[#86efac] text-[#166534] [--chip:#16a34a]", icon: <path d="M6.500 12.500 10.500 16.500 17.500 8" /> },
+  accepted: { tone: "from-[#fef3c7] via-[#fffbeb] to-surface-raised border-[#fcd34d] text-[#92400e] [--chip:#d97706]", icon: <><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.500 1.500M9 2.500h6" /></> },
+  confirmed: { tone: "from-[#dcfce7] via-[#f0fdf4] to-surface-raised border-[#86efac] text-[#166534] [--chip:#16a34a]", icon: <path d="M6.500 12.500 10.500 16.500 17.500 8" /> },
+  completed: { tone: "from-[#dcfce7] via-[#f0fdf4] to-surface-raised border-[#86efac] text-[#166534] [--chip:#16a34a]", icon: <path d="M6.500 12.500 10.500 16.500 17.500 8" /> },
+  overdue: { tone: "from-[#fee2e2] via-[#fef2f2] to-surface-raised border-[#fca5a5] text-[#991b1b] [--chip:#dc2626]", icon: <><circle cx="12" cy="12" r="9" /><path d="M12 7.500v5M12 16.500h.01" /></> },
+  rejected: { tone: "from-[#fee2e2] via-[#fef2f2] to-surface-raised border-[#fca5a5] text-[#991b1b] [--chip:#dc2626]", icon: <path d="M7 7l10 10M17 7 7 17" /> },
+  cancelled: { tone: "from-[#e2e8f0] via-[#f1f5f9] to-surface-raised border-[#cbd5e1] text-[#334155] [--chip:#64748b]", icon: <path d="M7 7l10 10M17 7 7 17" /> },
 };
+
+/** The first thing you see after booking: a big, clear "what happened" with the live timer when something is due. */
+function StatusHero({ booking, body, timeLeft, deadline }: { booking: Booking; body: string; timeLeft: number | null; deadline: ReturnType<typeof bookingDeadline> }) {
+  const t = useT();
+  const h = HERO[booking.status];
+  return (
+    <section aria-live="polite" className={`relative overflow-hidden rounded-card border bg-gradient-to-br p-6 md:p-8 ${h.tone}`}>
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+        <span aria-hidden className="flex size-20 shrink-0 items-center justify-center rounded-full bg-white/60 ring-1 ring-white">
+          <span className="flex size-14 items-center justify-center rounded-full bg-[var(--chip)] text-[#fff] shadow-[0_6px_16px_-4px_var(--chip)] ring-4 ring-white">
+            <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="2.800" strokeLinecap="round" strokeLinejoin="round">{h.icon}</svg>
+          </span>
+        </span>
+        <div className="min-w-0">
+          <h2 className="type-title text-text-primary">{t(`status.hero.${booking.status}`)}</h2>
+          <p className="type-body mt-1 text-text-secondary">{body}</p>
+          <p className="type-label mt-2 text-text-secondary">{booking.ref} · {booking.stayName}</p>
+        </div>
+      </div>
+      {deadline && timeLeft !== null && timeLeft > 0 ? (
+        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-field bg-white/70 px-4 py-3">
+          <span className="type-display tabular-nums text-text-primary">{formatCountdown(timeLeft)}</span>
+          <span className="type-body-sm text-text-secondary">{deadline.kind === "answer" ? t("status.timer.answer", { time: new Date(deadline.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) }) : t("bar.left")}</span>
+        </div>
+      ) : null}
+    </section>
+  );
+}
 
 function minutesLeft(payBy?: string): number | null {
   return payBy ? Math.max(0, Math.round((new Date(payBy).getTime() - Date.now()) / 60_000)) : null;
@@ -28,16 +62,17 @@ export function BookingStatusView({ booking }: { booking: Booking }) {
   const left = minutesLeft(booking.payBy);
   const bodyKey = (booking.status === "accepted" ? `status.body.accepted.${booking.mode}` : `status.body.${booking.status}`) as "status.body.pending";
   const next = nextStatuses(booking);
+  const deadline = bookingDeadline(booking);
+  const timeLeft = useCountdown(deadline?.at ?? null);
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
       <div className="flex flex-col gap-6">
+        <StatusHero booking={booking} body={t(bodyKey)} timeLeft={timeLeft} deadline={deadline} />
         <div className="rounded-card border border-border-subtle bg-surface-raised p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="type-heading">{t("status.title")}</h2><StatusBadge status={booking.status} />
           </div>
-          <StatusBanner tone={TONE[booking.status]} className="mt-4">{t(bodyKey)}</StatusBanner>
-
           {mustPay ? (
             <div className="mt-4 flex flex-col gap-2">
               <p className="type-body">

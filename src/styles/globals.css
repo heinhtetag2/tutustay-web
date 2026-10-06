@@ -87,6 +87,11 @@ body { font-family: var(--font-sans); font-size: 16px; line-height: calc(24px + 
 @keyframes rise-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes heart-pop { 0% { transform: scale(1); } 35% { transform: scale(1.4); } 65% { transform: scale(0.92); } 100% { transform: scale(1); } }
+@keyframes slide-right { from { transform: translateX(100%); } to { transform: none; } }
+.sheet-right { animation: slide-right 280ms var(--ease-out) both; }
+dialog.sheet-right[open] { animation: slide-right 280ms var(--ease-out) both; }
+@keyframes slide-up { from { transform: translateY(100%); } to { transform: none; } }
+dialog.sheet-up[open] { animation: slide-up 300ms var(--ease-out) both; }
 .anim-drop { transform-origin: top left; animation: drop-in 200ms var(--ease-out) both; }
 .anim-rise { animation: rise-in 460ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms); }
 .anim-heart { animation: heart-pop 420ms var(--ease-spring); }

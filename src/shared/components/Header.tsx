@@ -5,9 +5,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { sessionLabel, signOut } from "@/services/auth.service";
 import { useMockSession } from "../hooks/useMockSession";
+import { openAuthDialog } from "../hooks/useAuthDialog";
 import { LinkButton } from "../ui/Button";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { LocalLink } from "./LocalLink";
+
+/** On wide screens a signed-out guest goes straight to the sign-in dialog; on phones the menu opens first (it also holds the page links). */
+const wide = () => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches;
 
 export function Header() {
   const t = useT();
@@ -38,8 +42,7 @@ export function Header() {
 
   return (
     <header className={overHero ? "absolute inset-x-0 top-0 z-40 border-b border-transparent text-[#fff]" : "relative z-40 shrink-0 border-b border-border-subtle bg-surface-raised"}>
-      <div className={`site-width mx-auto items-center gap-4 pb-3 ${overHero ? "grid grid-cols-[1fr_auto_1fr]" : "flex justify-between"} ${overHero ? "px-4 pt-6 sm:px-6 md:px-8 md:pt-8" : edge ? "px-4 pt-4 sm:px-6 md:px-8" : "max-w-[var(--container-wide)] px-[var(--gutter)] pt-3"}`}>
-        {overHero ? <span aria-hidden /> : null}
+      <div className={`site-width mx-auto items-center gap-4 pb-3 flex justify-between ${overHero ? "px-4 pt-6 sm:px-6 md:px-8 md:pt-8" : edge ? "px-4 pt-4 sm:px-6 md:px-8" : "max-w-[var(--container-wide)] px-[var(--gutter)] pt-3"}`}>
         <LocalLink
           href="/"
           aria-label="TuTuStay home"
@@ -52,7 +55,7 @@ export function Header() {
           <Suspense fallback={null}><LanguageSwitcher pillCls={pill} /></Suspense>
           <div ref={menuRef} className="relative">
             <button
-              type="button" aria-label={session ? `${t("account.title")}: ${sessionLabel(session)}` : t("nav.menu")} aria-expanded={open} aria-haspopup="true" onClick={() => setOpen((o) => !o)}
+              type="button" aria-label={session ? `${t("account.title")}: ${sessionLabel(session)}` : t("nav.signIn")} aria-expanded={open} aria-haspopup="true" onClick={() => { if (!session && wide()) openAuthDialog(); else setOpen((o) => !o); }}
               className={`${pill} gap-2.5 py-0 pl-3.5 pr-1`}
             >
               <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M4 7h16M8 12h12M4 17h16" /></svg>
@@ -74,7 +77,7 @@ export function Header() {
                   </>
                 ) : (
                   <>
-                    <LocalLink href="/login" className={`${item} font-semibold`}>{t("nav.signIn")}</LocalLink>
+                    <button type="button" onClick={() => { setOpen(false); openAuthDialog(); }} className={`${item} w-full cursor-pointer text-left font-semibold`}>{t("nav.signIn")}</button>
                     <LocalLink href="/signup" className={item}>{t("signup.title")}</LocalLink>
                   </>
                 )}

@@ -20,6 +20,8 @@ interface Props {
   /** Word after a count on a cluster pin ("3 stays") and the hint read with it. */
   /** Shown when no map picture can be loaded. */
   failedLabel?: string;
+  /** Open a small popup over the selected pin. Turn off where a card elsewhere shows the stay instead (phones). Default on. */
+  popup?: boolean;
   clusterLabel?: string;
   zoomHint?: string;
   className?: string;
@@ -32,7 +34,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
  * Price pins are real <button>s so they work with a keyboard and a screen reader. The stay list beside the map is
  * the accessible equivalent of the map.
  */
-export function StayMap({ pins, selectedId, hoverId, onSelect, onBoundsChange, variant = "full", ariaLabel, openLabel, clusterLabel = "stays", zoomHint = "zoom in", failedLabel, className }: Props) {
+export function StayMap({ pins, selectedId, hoverId, onSelect, onBoundsChange, variant = "full", ariaLabel, openLabel, clusterLabel = "stays", zoomHint = "zoom in", failedLabel, popup = true, className }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<LMap | null>(null);
   const lib = useRef<typeof import("leaflet") | null>(null);
@@ -208,13 +210,13 @@ export function StayMap({ pins, selectedId, hoverId, onSelect, onBoundsChange, v
       m.setView([sel.lat, sel.lng], Math.max(m.getZoom(), 15));
       return;
     }
-    if (sel) {
+    if (sel && popup) {
       const content = document.createElement("div");
       content.innerHTML = `<p class="type-subheading">${esc(sel.name)}</p><p class="type-body-sm">${esc(sel.label)}</p><a class="type-label text-text-link underline" href="${esc(sel.href)}">${esc(openLabel)}</a>`;
       L.popup({ offset: [0, -34], closeButton: false, autoPan: true }).setLatLng([sel.lat, sel.lng]).setContent(content).openOn(m);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, hoverId, pins]);
+  }, [selectedId, hoverId, pins, popup]);
 
   // The element Leaflet controls (`el`) must keep a STATIC className: Leaflet adds its own classes (leaflet-container, …) to it,
   // and a React re-render that rewrites className would remove them and collapse every tile to 0px wide (Tailwind's img reset).

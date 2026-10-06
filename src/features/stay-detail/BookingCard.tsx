@@ -49,7 +49,7 @@ export function BookingCard({ params, today, offered, fromRate, soldOut, session
   const unit = overnight ? t("price.perNight") : t("price.perStay");
 
   return (
-    <aside aria-label={t("booking.card")} className="flex flex-col gap-4 self-start rounded-field border border-border-subtle bg-surface-raised p-6 shadow-raised lg:sticky lg:top-6">
+    <aside aria-label={t("booking.card")} className="hidden flex-col gap-4 self-start rounded-field lg:flex border border-border-subtle bg-surface-raised p-6 shadow-raised lg:sticky lg:top-6">
       <div>
         {fromRate !== null ? (
           <Price amount={fromRate} unit={unit} size="lg" prefix={t("price.from")} />

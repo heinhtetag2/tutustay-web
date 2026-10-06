@@ -122,7 +122,7 @@ export function Filters({ params, sheetOnly = false, sidebar = false, count }: {
       <>
         <button
           type="button" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()}
-          className="type-label inline-flex min-h-11 cursor-pointer items-center gap-2.5 rounded-full border border-border-control bg-surface-raised px-5 shadow-raised transition-colors hover:bg-surface-subtle"
+          className="type-label inline-flex min-h-11 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-border-control bg-surface-raised px-4 sm:gap-2.5 sm:px-5 shadow-raised transition-colors hover:bg-surface-subtle"
         >
           <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M3 7h9M18 7h3M3 17h3M12 17h9" /><circle cx="15" cy="7" r="2.5" /><circle cx="9" cy="17" r="2.5" /></svg>
           {t("filter.titleSort")}{active ? ` (${active})` : ""}

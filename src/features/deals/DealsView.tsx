@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatKs, todayIso, type Coupon } from "@/domain";
 import { useT } from "@/i18n/I18nProvider";
-import { claimedCouponsStore } from "@/services/preferences.service";
+import { claimedCouponsStore, seedDemoClaims } from "@/services/preferences.service";
 import { LocalLink } from "@/shared/components/LocalLink";
 import { useStore } from "@/shared/hooks/useStore";
 import { Badge } from "@/shared/ui/Badge";
@@ -18,11 +18,13 @@ export function DealsView({ coupons, initialTab = "all" }: { coupons: Coupon[]; 
   const t = useT();
   const claimed = useStore(claimedCouponsStore);
   const [tab, setTab] = useState<Tab>(initialTab);
+  useEffect(() => { seedDemoClaims(); }, []);
   const today = todayIso();
   const expired = (c: Coupon) => c.expires < today;
-  // ASSUMPTION: the live tabs are "All deals / My coupons / Claimed / Expired". "My coupons" = claimed and still usable;
+  // ASSUMPTION: the live tabs are "All deals / My coupons / Claimed / Expired". "All deals" = still claimable (claiming moves a coupon out of it);
+  // "My coupons" = claimed and still usable;
   // "Claimed" = everything you've claimed, including expired ones. The live semantics are not documented.
-  const shown = coupons.filter((c) => (tab === "all" ? !expired(c) : tab === "mine" ? claimed.includes(c.code) && !expired(c) : tab === "claimed" ? claimed.includes(c.code) : expired(c)));
+  const shown = coupons.filter((c) => (tab === "all" ? !expired(c) && !claimed.includes(c.code) : tab === "mine" ? claimed.includes(c.code) && !expired(c) : tab === "claimed" ? claimed.includes(c.code) : expired(c)));
 
   return (
     <div className="flex flex-col gap-4">

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { LoginForm } from "@/features/auth/LoginForm";
 import { isLocale } from "@/i18n/config";
 import { BackLink } from "@/shared/components/BackLink";
-import { Container } from "@/shared/layout/Container";
+import { AuthBackdrop } from "@/features/auth/AuthBackdrop";
 
 export const metadata = { title: "Sign in" };
 
@@ -11,9 +11,9 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   return (
-    <Container size="narrow" className="py-10">
+    <AuthBackdrop>
       <BackLink fallback="/" />
       <Suspense fallback={null}><LoginForm /></Suspense>
-    </Container>
+    </AuthBackdrop>
   );
 }

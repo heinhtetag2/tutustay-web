@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { CodeFlow } from "@/features/auth/CodeFlow";
 import { isLocale } from "@/i18n/config";
 import { BackLink } from "@/shared/components/BackLink";
-import { Container } from "@/shared/layout/Container";
+import { AuthBackdrop } from "@/features/auth/AuthBackdrop";
 
 export const metadata = { title: "Sign up" };
 
@@ -11,9 +11,9 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   return (
-    <Container size="narrow" className="py-10">
+    <AuthBackdrop>
       <BackLink fallback="/" />
       <Suspense fallback={null}><CodeFlow kind="signup" /></Suspense>
-    </Container>
+    </AuthBackdrop>
   );
 }

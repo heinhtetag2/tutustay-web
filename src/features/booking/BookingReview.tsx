@@ -17,6 +17,7 @@ import { Button } from "@/shared/ui/Button";
 import { Checkbox, Field, Input, Textarea } from "@/shared/ui/Field";
 import { StatusBanner } from "@/shared/ui/StatusBanner";
 import { guestDetailsSchema } from "@/validation/booking";
+import { HowYoullPay } from "./HowYoullPay";
 import { PriceBreakdown } from "./PriceBreakdown";
 
 export interface ReviewContext {
@@ -149,6 +150,8 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
           {couponMsg ? <StatusBanner tone={couponMsg.tone}>{couponMsg.text}</StatusBanner> : null}
           <p className="type-body-sm text-text-secondary">{t("coupon.mockNote")}</p>
         </section>
+
+        <HowYoullPay mode={mode} price={price} />
 
         <section aria-labelledby="policies" className="flex flex-col gap-3">
           <h2 id="policies" className="type-heading">{t("review.policies")}</h2>

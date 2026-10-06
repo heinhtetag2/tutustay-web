@@ -10,6 +10,8 @@ import { useStore } from "@/shared/hooks/useStore";
 import { Button, LinkButton } from "@/shared/ui/Button";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { EmptyState } from "@/shared/ui/States";
+import { stayCover } from "@/features/stay-detail/photos";
+import { PhotoTile } from "@/shared/ui/PhotoTile";
 import { StatusBadge } from "./StatusBadge";
 
 type Tab = "upcoming" | "past" | "cancelled";
@@ -51,12 +53,15 @@ export function BookingList() {
         <div role="tabpanel"><ul className="flex flex-col gap-3">
           {shown.map((b) => (
             <li key={b.ref}>
-              <LocalLink href={`/bookings/${b.ref}`} className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-border-subtle bg-surface-raised p-4 shadow-card hover:shadow-raised">
-                <div>
-                  <p className="type-subheading">{b.stayName}</p>
-                  <p className="type-body-sm text-text-secondary">{b.roomName} · {formatDate(b.checkIn, true, locale)}{b.stayType === "overnight" ? ` – ${formatDate(b.checkOut, true, locale)}` : ""} · {b.ref}</p>
+              <LocalLink href={`/bookings/${b.ref}`} className="group flex items-center gap-4 rounded-card border border-border-subtle bg-surface-raised p-3 shadow-card transition-shadow hover:shadow-raised sm:p-4">
+                <PhotoTile src={stayCover(b.stayId)} alt="" className="size-20 shrink-0 rounded-field sm:size-24" />
+                <div className="min-w-0 flex-1">
+                  <p className="type-subheading truncate">{b.stayName}</p>
+                  <p className="type-body-sm truncate text-text-secondary">{b.roomName}</p>
+                  <p className="type-body-sm text-text-secondary">{formatDate(b.checkIn, true, locale)}{b.stayType === "overnight" ? ` – ${formatDate(b.checkOut, true, locale)}` : ""} · {b.ref}</p>
                 </div>
-                <div className="flex items-center gap-3"><StatusBadge status={b.status} /><span className="type-price-sm">{formatKs(b.price.total)}</span></div>
+                <div className="flex shrink-0 flex-col items-end gap-1.5"><StatusBadge status={b.status} /><span className="type-price-sm">{formatKs(b.price.total)}</span></div>
+                <span aria-hidden className="hidden text-text-secondary transition-transform group-hover:translate-x-0.5 sm:block">›</span>
               </LocalLink>
             </li>
           ))}

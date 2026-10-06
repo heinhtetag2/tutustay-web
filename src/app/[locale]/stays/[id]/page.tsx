@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { lowestRate, nightsBetween, stayTypesOffered, todayIso } from "@/domain";
 import { BookingCard } from "@/features/stay-detail/BookingCard";
+import { StayBookingBar } from "@/features/stay-detail/StayBookingBar";
 import { RoomCard } from "@/features/stay-detail/RoomCard";
 import { PhotoGallery } from "@/features/stay-detail/PhotoGallery";
 import { StayActions } from "@/features/stay-detail/StayActions";
@@ -128,11 +129,8 @@ export default async function StayPage({ params, searchParams }: Props) {
       <StayPolicies stay={stay} locale={locale} />
       <NearbyStays stay={stay} locale={locale} params={p} query={query} />
 
-      {/* Mobile: the price and the primary action stay reachable. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border-subtle bg-surface-raised px-[var(--gutter)] py-3 lg:hidden">
-        {fromRate !== null ? <Price amount={fromRate} prefix={t("price.from")} unit={p.stayType === "overnight" ? t("price.perNight") : t("price.perStay")} /> : <span className="type-label">{t("booking.noRates")}</span>}
-        <a href="#rooms" className="type-label inline-flex min-h-11 items-center rounded-control bg-action-primary px-5 text-text-on-action">{t("booking.seeRooms")}</a>
-      </div>
+      {/* Phones: price and dates pinned at the bottom, tap for the booking sheet. */}
+      <StayBookingBar params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} />
     </Container>
   );
 }

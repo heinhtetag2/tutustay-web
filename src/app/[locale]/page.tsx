@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { formatKs, todayIso, type PropertyCategory } from "@/domain";
 import { HeroCarousel } from "@/features/home/HeroCarousel";
+import { TileIcon } from "@/features/home/TileIcon";
 import { TrustPoints } from "@/features/home/TrustPoints";
 import { ResultCard } from "@/features/search/ResultCard";
 import { stayCover } from "@/features/stay-detail/photos";
@@ -99,8 +100,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <Section>
           <h2 className="type-heading mb-4">{t("home.explore")}</h2>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {([["/deals", "home.tile.claim"], ["/account/promo-codes", "home.tile.mine"], ["/download", "home.tile.app"], ["/search?sort=price-asc", "home.tile.lowest"], ["/search", "home.tile.browse"]] as const).map(([href, key]) => (
-              <li key={key}><LocalLink href={href} className="flex h-full flex-col gap-1 rounded-card border border-border-subtle bg-surface-raised p-4 shadow-card hover:shadow-raised"><span className="type-subheading">{t(`${key}.title`)}</span><span className="type-body-sm text-text-secondary">{t(`${key}.body`)}</span></LocalLink></li>
+            {([["/account/promo-codes?tab=all", "home.tile.claim", "claim"], ["/account/promo-codes", "home.tile.mine", "mine"], ["/download", "home.tile.app", "app"], ["/search?sort=price-asc", "home.tile.lowest", "lowest"], ["/search", "home.tile.browse", "browse"]] as const).map(([href, key, icon]) => (
+              <li key={key}><LocalLink href={href} className="flex h-full flex-col gap-1 rounded-card border border-border-subtle bg-surface-raised p-4 shadow-card hover:shadow-raised"><TileIcon name={icon} /><span className="type-subheading">{t(`${key}.title`)}</span><span className="type-body-sm text-text-secondary">{t(`${key}.body`)}</span></LocalLink></li>
             ))}
           </ul>
         </Section>
@@ -108,7 +109,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <Section>
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-card bg-promo-bg p-6">
             <div><h2 className="type-subheading text-promo-text">{t("home.dealsTitle")}</h2><p className="type-body-sm mt-1">{t("home.dealsBody")}</p></div>
-            <LinkButton href="/deals" variant="secondary">{t("nav.deals")}</LinkButton>
+            <LinkButton href="/account/promo-codes?tab=all" variant="secondary">{t("nav.deals")}</LinkButton>
           </div>
         </Section>
       </Container>

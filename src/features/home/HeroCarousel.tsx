@@ -60,7 +60,7 @@ export function HeroCarousel({ slides, children }: { slides: HeroSlide[]; childr
             {slides.map((s, k) => (
               <button
                 key={s.src} type="button" aria-label={`${k + 1} / ${slides.length}`} aria-current={k === i ? "true" : undefined} onClick={() => setI(k)}
-                className="flex size-6 items-center justify-center"
+                className="flex size-10 items-center justify-center"
               >
                 <span className={`block h-1.5 rounded-full bg-[#fff] transition-all duration-500 ${k === i ? "w-6 opacity-100" : "w-1.5 opacity-50"}`} />
               </button>
