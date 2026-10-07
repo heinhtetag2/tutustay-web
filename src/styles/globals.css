@@ -97,6 +97,7 @@ dialog.sheet-up[open] { animation: slide-up 300ms var(--ease-out) both; }
 .anim-heart { animation: heart-pop 420ms var(--ease-spring); }
 dialog[open] { animation: sheet-in 300ms var(--ease-out); }
 dialog::backdrop { animation: backdrop-in 260ms ease-out; }
+.anim-backdrop { animation: backdrop-in 220ms ease-out both; }
 details[open] > .pop { animation: drop-in 200ms var(--ease-out) both; transform-origin: top left; }
 /* Hover lift for cards and a gentle press for anything clickable that opts in. */
 .lift { transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out); }

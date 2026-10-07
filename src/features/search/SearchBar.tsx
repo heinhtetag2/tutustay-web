@@ -43,6 +43,8 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
   const [error, setError] = useState<string>();
   const [open] = useState(variant !== "summary");
   const [sheet, setSheet] = useState(false);
+  // Top-bar search: while it is being used, the page below dims (the header stays bright), like a travel-site search.
+  const [dim, setDim] = useState<number | null>(null);
 
   const overnight = stay.stayType === "overnight";
   const [nearState, setNearState] = useState<"idle" | "asking" | "denied" | "unavailable">("idle");
@@ -101,7 +103,11 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
   const summaryWhen = `${formatDate(checkIn, true, locale)}${overnight ? ` – ${formatDate(checkOut, true, locale)}` : ""} · ${guestTotal === 1 ? t("guests.guestOne") : t("guests.guestMany", { n: guestTotal })}`;
 
   return (
-    <form onSubmit={onSubmit} aria-label={t("search.label")} className={`relative rounded-card bg-surface-raised shadow-[0_2px_12px_#0000001a] ${variant === "summary" ? "lg:border-0 lg:bg-transparent lg:shadow-none" : variant === "header" ? "hidden lg:block lg:bg-transparent lg:shadow-none" : "p-4 md:p-6 lg:bg-transparent lg:p-0 lg:shadow-none"}`}>
+    <form
+      onSubmit={onSubmit} aria-label={t("search.label")}
+      onFocusCapture={variant === "header" ? (e) => setDim(e.currentTarget.closest("header")?.getBoundingClientRect().bottom ?? 0) : undefined}
+      onBlurCapture={variant === "header" ? (e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDim(null); } : undefined}
+      className={`relative rounded-card bg-surface-raised shadow-[0_2px_12px_#0000001a] ${variant === "summary" ? "lg:border-0 lg:bg-transparent lg:shadow-none" : variant === "header" ? "hidden lg:block lg:bg-transparent lg:shadow-none" : "p-4 md:p-6 lg:bg-transparent lg:p-0 lg:shadow-none"}`}>
       {variant === "summary" ? (
         <button
           type="button"
@@ -171,6 +177,13 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
           value={{ place, checkIn, checkOut, guests }} stay={stay} onStay={setStay}
           onChange={(v) => { setPlace(v.place); setCheckIn(v.checkIn); setCheckOut(v.checkOut); setGuests(v.guests); }}
           onSubmit={() => search()}
+        />
+      ) : null}
+      {variant === "header" && dim !== null ? (
+        <div
+          aria-hidden style={{ top: dim }}
+          onPointerDown={(e) => { e.preventDefault(); (document.activeElement as HTMLElement | null)?.blur(); setDim(null); }}
+          className="anim-backdrop fixed inset-x-0 bottom-0 -z-10 hidden bg-[#0000004d] lg:block"
         />
       ) : null}
     </form>
