@@ -417,6 +417,7 @@ export const my: Partial<Record<MessageKey, string>> = {
   "sim.set": "အခြေအနေသတ်မှတ်ရန်: {status}",
   "sim.none": "နောက်ထပ် အခြေအနေပြောင်းလဲမှု မရနိုင်တော့ပါ။ ဤအဆင့်သည် နောက်ဆုံးဖြစ်သည်။",
   "optional": "မလိုအပ်ပါ",
+  "feedback.label": "အကြံပြုရန်",
   "common.close": "ပိတ်ရန်",
   "fav.title": "နှစ်သက်ရာစာရင်း",
   "fav.add": "{name} ကို နှစ်သက်ရာစာရင်းတွင် သိမ်းရန်",

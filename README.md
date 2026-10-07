@@ -4,7 +4,7 @@ A functional, low-fidelity rebuild of the TuTuStay web product, made to **valida
 
 > **Everything here is MOCK.** There is no backend. Stays, rooms, rates, coupons, reviews, sign-in, bookings, enquiries and applications are invented fixtures, kept in your browser's `localStorage`. No hotel, payment, email or SMS is behind them, and the UI says so (black strip on every page, banners on booking, sign-in, sign-up and partner screens).
 
-Docs: [`docs/`](docs): `01` audit and references · `02` UX foundation · `03` design system · `04` architecture · **`05` parity, new findings and decisions (read this first)**.
+Docs: [`docs/`](docs): `01` audit and references · `02` UX foundation · `03` design system · `04` architecture · **`05` parity, new findings and decisions (read this first)** · `06` [usability test kit](docs/06-usability-test-kit.md).
 
 ## Run
 

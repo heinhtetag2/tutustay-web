@@ -8,6 +8,8 @@ import { createT } from "@/i18n/translate";
 import { Footer } from "@/shared/components/Footer";
 import { AuthDialog } from "@/features/auth/AuthDialog";
 import { ActiveBookingBar } from "@/features/bookings/ActiveBookingBar";
+import { FeedbackDialog } from "@/features/feedback/FeedbackDialog";
+import { FeedbackTab } from "@/shared/components/FeedbackTab";
 import { Header } from "@/shared/components/Header";
 import "@/styles/globals.css";
 
@@ -41,6 +43,8 @@ export default async function LocaleLayout({ children, params }: { children: Rea
           <Footer locale={locale} />
           <AuthDialog />
           <ActiveBookingBar />
+          <FeedbackTab />
+          <FeedbackDialog />
         </I18nProvider>
       </body>
     </html>

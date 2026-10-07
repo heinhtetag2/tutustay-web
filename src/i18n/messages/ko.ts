@@ -5,6 +5,7 @@ import type { MessageKey } from "./en";
  * Needs a professional translator (docs/04 Q12).
  */
 export const ko: Partial<Record<MessageKey, string>> = {
+  "feedback.label": "의견 보내기",
   "nav.stays": "숙소",
   "nav.deals": "특가",
   "nav.help": "도움말",

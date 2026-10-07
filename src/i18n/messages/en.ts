@@ -455,6 +455,11 @@ export const en = {
   "sim.set": "Set status: {status}",
   "sim.none": "No further status changes are possible. This stage is final.",
   "optional": "Optional",
+  "feedback.label": "Give feedback",
+  "feedback.see": "See feedback",
+  "feedback.seeAria": "See what other testers have said",
+  "feedback.aria": "Give feedback on this prototype (opens a form)",
+
   "common.close": "Close",
   "fav.title": "Wishlist",
   "fav.add": "Save {name} to wishlist",

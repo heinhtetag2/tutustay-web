@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
       { source: "/hotel/:id/reserve", destination: "/en/stays/:id", permanent: false },
       { source: "/landing", destination: "/en/about", permanent: false },
       { source: "/partners/become-a-partner", destination: "/en/partners/apply", permanent: false },
+      { source: "/:locale(en|my|ko)/dev/feedback", destination: "/:locale/feedback", permanent: false },
       // The public Deals page is gone: deals and coupons live in the account.
       { source: "/:locale(en|my|ko)/deals", destination: "/:locale/account/promo-codes?tab=all", permanent: false },
       { source: "/deals", destination: "/en/account/promo-codes?tab=all", permanent: false },

@@ -36,10 +36,10 @@ export function Button({
 }
 
 export function LinkButton({
-  href, variant = "primary", size = "md", fullWidth, className, children,
-}: Common & { href: string }) {
+  href, variant = "primary", size = "md", fullWidth, className, children, onClick,
+}: Common & { href: string; onClick?: () => void }) {
   return (
-    <LocalLink href={href} className={cn(base, variants[variant], sizes[size], fullWidth && "w-full", className)}>
+    <LocalLink href={href} onClick={onClick} className={cn(base, variants[variant], sizes[size], fullWidth && "w-full", className)}>
       {children}
     </LocalLink>
   );
