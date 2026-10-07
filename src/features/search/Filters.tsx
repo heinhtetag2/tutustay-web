@@ -40,7 +40,8 @@ export function Filters({ params, sheetOnly = false, sidebar = false, count }: {
 
   const body = (
     <div className={sidebar ? "flex flex-col gap-5 [&>*]:border-b [&>*]:border-border-subtle [&>*]:pb-5 [&>*:last-child]:border-b-0" : "flex flex-col gap-6"}>
-      <StayTypePicker stayType={params.stayType} sessionHours={params.sessionHours} onChange={(s) => apply(s)} />
+      {/* In the Filter & Sort modal the stay type lives in the main search bar instead. */}
+      {sheetOnly ? null : <StayTypePicker stayType={params.stayType} sessionHours={params.sessionHours} onChange={(s) => apply(s)} />}
 
       <Field label={t("filter.category")}>
         {({ id }) => (

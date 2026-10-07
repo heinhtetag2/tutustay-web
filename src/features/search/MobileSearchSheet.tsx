@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { addDays, formatDate, LIMITS } from "@/domain";
+import { addDays, formatDate, LIMITS, type SessionHours, type StayType } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { dataLabel } from "@/i18n/dataLabels";
 import type { GuestState } from "@/shared/components/GuestPicker";
 import { guestSummaryText } from "@/shared/lib/guestSummary";
 import { MobileCalendar } from "@/shared/components/MobileCalendar";
+import { StayTypePicker } from "@/shared/components/StayTypePicker";
 import { Button } from "@/shared/ui/Button";
 import { Checkbox } from "@/shared/ui/Field";
 import { Stepper } from "@/shared/ui/Stepper";
@@ -19,6 +20,9 @@ interface Props {
   onClose: () => void;
   value: SheetValue;
   onChange: (v: SheetValue) => void;
+  /** Overnight, session or daycation (and session length). */
+  stay: { stayType: StayType; sessionHours: SessionHours };
+  onStay: (v: { stayType: StayType; sessionHours: SessionHours }) => void;
   /** Runs the search. Returns false (and the sheet stays open) when the dates are not valid. */
   onSubmit: () => boolean;
   overnight: boolean;
@@ -53,7 +57,7 @@ function Sub({ title, onBack, children, footer }: { title: string; onBack: () =>
  * The phone search: a full-screen drawer with Where / When / Who. Each row opens its own panel that slides in from the right
  * (destination list, a scrolling calendar, guests), and Search at the bottom runs the search. Wide screens use the search bar instead.
  */
-export function MobileSearchSheet({ open, onClose, value, onChange, onSubmit, overnight, today, placeOptions, error }: Props) {
+export function MobileSearchSheet({ open, onClose, value, onChange, stay, onStay, onSubmit, overnight, today, placeOptions, error }: Props) {
   const t = useT();
   const locale = useLocale();
   const ref = useRef<HTMLDialogElement>(null);
@@ -95,6 +99,7 @@ export function MobileSearchSheet({ open, onClose, value, onChange, onSubmit, ov
           </div>
           <h2 className="type-heading px-5 pb-4 pt-1">{t("search.label")}</h2>
           <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-5">
+            <StayTypePicker stayType={stay.stayType} sessionHours={stay.sessionHours} onChange={onStay} />
             {row(t("search.where"), value.place ? dataLabel(locale, value.place) : t("search.anywhere"), "where")}
             {row(t("sheet.when"), dates, "when")}
             {row(t("search.guests"), who, "who")}

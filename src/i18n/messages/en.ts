@@ -773,6 +773,23 @@ export const en = {
   "profile.passport": "Passport or ID number",
   "booking.yourStay": "Your stay",
   "booking.change": "Change",
+  "reviews.tab.todo": "To review",
+  "reviews.tab.written": "Written",
+  "reviews.write": "Write a review",
+  "reviews.viewBooking": "View booking",
+  "reviews.stayed": "Stayed {dates}",
+  "reviews.todoEmpty.title": "Nothing to review right now",
+  "reviews.todoEmpty.body": "When you finish a stay, it shows up here so you can review it.",
+  "deals.add.title": "Have a coupon code?",
+  "deals.add.placeholder": "Enter your code, for example WELCOME10",
+  "deals.add.button": "Add coupon",
+  "deals.add.empty": "Enter a coupon code first.",
+  "deals.add.notFound": "We couldn't find that code. Check it and try again.",
+  "deals.add.expired": "This coupon has expired.",
+  "deals.add.already": "You've already added this coupon.",
+  "deals.add.done": "{code} was added to My coupons.",
+  "deals.add.invalid": "Use 3 to 20 letters or numbers.",
+  "deals.add.demoTitle": "Ks 5,000 off with {code}",
 } as const;
 
 export type MessageKey = keyof typeof en;

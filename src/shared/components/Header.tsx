@@ -7,6 +7,7 @@ import { sessionLabel, signOut } from "@/services/auth.service";
 import { useMockSession } from "../hooks/useMockSession";
 import { openAuthDialog } from "../hooks/useAuthDialog";
 import { LinkButton } from "../ui/Button";
+import { HeaderSearch } from "@/features/search/HeaderSearch";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { LocalLink } from "./LocalLink";
 
@@ -24,6 +25,7 @@ export function Header() {
 
   // On the home page the header floats transparent over the hero banner (white text); it turns solid when the mobile menu is open.
   const overHero = pathname.split("/").filter(Boolean).length <= 1;
+  const isSearch = pathname.split("/")[2] === "search";
   const edge = overHero || pathname.split("/")[2] === "search"; // full-bleed header, close to the screen edges
   // Right-hand controls are pills: frosted over the hero, hairline-bordered elsewhere.
   const pill = `type-label inline-flex min-h-10 cursor-pointer items-center rounded-full text-text-primary transition-colors ${overHero ? "bg-[#ffffffd9] backdrop-blur-md hover:bg-[#fff]" : "border border-border-subtle bg-surface-raised hover:bg-surface-subtle"}`;
@@ -51,6 +53,7 @@ export function Header() {
           LOGO
         </LocalLink>
 
+        {isSearch ? <div className="hidden min-w-0 flex-1 justify-center lg:flex"><Suspense fallback={null}><HeaderSearch /></Suspense></div> : null}
         <div className="flex items-center justify-end gap-2 sm:gap-3">
           <Suspense fallback={null}><LanguageSwitcher pillCls={pill} /></Suspense>
           <div ref={menuRef} className="relative">

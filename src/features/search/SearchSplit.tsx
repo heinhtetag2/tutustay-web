@@ -53,7 +53,7 @@ export function SearchSplit({ items, query, stayType, foreigner, title, controls
 
   return (
     <div data-fullscreen-page className={`min-h-0 flex-1 flex-col ${className ?? "flex"}`}>
-    <div className="relative z-30 shrink-0 border-b border-border-subtle bg-surface-brand-subtle px-4 py-2 sm:px-6 md:px-8 lg:py-3">
+    <div className="relative z-30 shrink-0 lg:hidden border-b border-border-subtle bg-surface-brand-subtle px-4 py-2 sm:px-6 md:px-8 lg:py-3">
       <div>{searchBar}</div>
       {notice}
     </div>

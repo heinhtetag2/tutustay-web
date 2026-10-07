@@ -82,7 +82,7 @@ export default async function SearchPage({
     return (
       <>
         <div className="lg:hidden">
-        <div className="relative z-30 border-b border-border-subtle bg-surface-brand-subtle px-4 py-2 sm:px-6 md:px-8 lg:py-3">
+        <div className="relative z-30 border-b lg:hidden border-border-subtle bg-surface-brand-subtle px-4 py-2 sm:px-6 md:px-8 lg:py-3">
           {searchBar}
           {datesRepaired ? <StatusBanner tone="warning" className="mt-3">{t("search.datesRepaired")}</StatusBanner> : null}
         </div>

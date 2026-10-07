@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { addDays, formatDate, isValidStayRange, type SessionHours, type StayType } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { GuestPicker, type GuestState } from "@/shared/components/GuestPicker";
@@ -10,6 +10,7 @@ import { Field, Input } from "@/shared/ui/Field";
 import { DateField } from "@/shared/components/DateField";
 import { PlaceCombobox } from "./PlaceCombobox";
 import { MobileSearchSheet } from "./MobileSearchSheet";
+import { StayTypeMenu } from "./StayTypeMenu";
 import { toQueryString, type SearchParams } from "@/validation/search";
 
 interface Props {
@@ -17,7 +18,7 @@ interface Props {
   today: string;
   placeOptions: string[];
   /** `hero`: always open. `summary`: a compact editable bar that opens on small screens. */
-  variant?: "hero" | "summary";
+  variant?: "hero" | "summary" | "header";
   /** Extra params to preserve when searching again (category, filters). */
   preserve?: Partial<SearchParams>;
 }
@@ -40,7 +41,7 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
     foreigner: initial.foreigner,
   });
   const [error, setError] = useState<string>();
-  const [open] = useState(variant === "hero");
+  const [open] = useState(variant !== "summary");
   const [sheet, setSheet] = useState(false);
 
   const overnight = stay.stayType === "overnight";
@@ -79,12 +80,28 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
     );
   }
 
+  const hd = variant === "header";
+  // The top-bar and home searches share one look: an icon per part, the stay type as its own part, and the pill opens up on focus.
+  const rich = variant === "header" || variant === "hero";
+  // In the top bar each part gets an icon (it shows when the pill opens up), like a travel-site search.
+  const seg = (icon: ReactNode, node: ReactNode, cls = "") => rich ? (
+    <div className={`flex items-center ${cls}`}>
+      <span aria-hidden className="mr-3 hidden shrink-0 text-text-primary lg:block">{icon}</span>
+      <div className="min-w-0 flex-1">{node}</div>
+    </div>
+  ) : node;
+  const ic = (d: ReactNode) => <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{d}</svg>;
+  const PIN = ic(<><path d="M12 21s-6.500-5.600-6.500-11a6.500 6.500 0 0 1 13 0C18.500 15.400 12 21 12 21Z" /><circle cx="12" cy="10" r="2.300" /></>);
+  const CAL = ic(<><rect x="4" y="5" width="16" height="15" rx="2.500" /><path d="M8 3v4M16 3v4M4 10h16" /></>);
+  const BED = ic(<path d="M3 19v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M3 16h18M7 9V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2" />);
+  const WHO = ic(<><circle cx="9" cy="8" r="3.500" /><path d="M2.500 20a6.500 6.500 0 0 1 13 0M16 4.500a3.500 3.500 0 0 1 0 7M18 20a6.500 6.500 0 0 0-3-5.500" /></>);
+
   const guestTotal = guests.adults + guests.children;
   const summaryPlace = place || t("search.anywhere");
   const summaryWhen = `${formatDate(checkIn, true, locale)}${overnight ? ` – ${formatDate(checkOut, true, locale)}` : ""} · ${guestTotal === 1 ? t("guests.guestOne") : t("guests.guestMany", { n: guestTotal })}`;
 
   return (
-    <form onSubmit={onSubmit} aria-label={t("search.label")} className={`rounded-card bg-surface-raised shadow-[0_2px_12px_#0000001a] ${variant === "summary" ? "lg:border-0 lg:bg-transparent lg:shadow-none" : "p-4 md:p-6 lg:bg-transparent lg:p-0 lg:shadow-none"}`}>
+    <form onSubmit={onSubmit} aria-label={t("search.label")} className={`relative rounded-card bg-surface-raised shadow-[0_2px_12px_#0000001a] ${variant === "summary" ? "lg:border-0 lg:bg-transparent lg:shadow-none" : variant === "header" ? "hidden lg:block lg:bg-transparent lg:shadow-none" : "p-4 md:p-6 lg:bg-transparent lg:p-0 lg:shadow-none"}`}>
       {variant === "summary" ? (
         <button
           type="button"
@@ -100,42 +117,50 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
       ) : null}
 
       <div className={`${variant === "summary" && !open ? "hidden lg:block" : ""} ${variant === "summary" ? "px-4 pb-4 pt-1 lg:p-0" : ""}`}>
-        <div className="search-pill grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_auto] lg:items-center lg:gap-0 lg:rounded-full lg:border lg:border-border-subtle lg:bg-surface-raised lg:py-2 lg:pl-3 lg:pr-2 lg:shadow-[0_3px_12px_#0000001a] lg:hover:shadow-[0_6px_20px_#00000026] lg:transition-shadow
+        <div className={`search-pill grid gap-4 ${variant === "header" ? "lg:w-[min(62rem,66vw)] lg:grid-cols-[1.15fr_1fr_0.9fr_0.9fr_1.25fr_auto] lg:py-1 lg:pl-2 lg:pr-1.5" : variant === "hero" ? "lg:grid-cols-[1.6fr_1fr_0.85fr_0.85fr_1.2fr_auto] lg:py-2 lg:pl-3 lg:pr-2" : "lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_auto] lg:py-2 lg:pl-3 lg:pr-2"} lg:items-center lg:gap-0 lg:rounded-full lg:border lg:border-border-subtle lg:bg-surface-raised lg:shadow-[0_3px_12px_#0000001a] lg:hover:shadow-[0_6px_20px_#00000026] lg:transition-shadow
           lg:[&>*:not(:last-child)]:border-r lg:[&>*:not(:last-child)]:border-border-subtle lg:[&>*:not(:last-child)]:px-5 lg:[&>div]:gap-0.5
           lg:[&_label]:text-xs lg:[&_label]:font-semibold lg:[&_span.type-label]:text-xs lg:[&_span.type-label]:font-semibold
           lg:[&_input]:min-h-0 lg:[&_input]:border-0 lg:[&_input]:bg-transparent lg:[&_input]:p-0 lg:[&_input]:text-sm
           lg:[&_.date-trigger]:min-h-0 lg:[&_.date-trigger]:border-0 lg:[&_.date-trigger]:bg-transparent lg:[&_.date-trigger]:px-0 lg:[&_.date-trigger]:text-sm
-          lg:[&_summary]:min-h-0 lg:[&_summary]:border-0 lg:[&_summary]:bg-transparent lg:[&_summary]:px-0 lg:[&_summary]:text-sm">
-          <Field label={t("search.where")}>
+          lg:[&_summary]:min-h-0 lg:[&_summary]:border-0 lg:[&_summary]:bg-transparent lg:[&_summary]:px-0 lg:[&_summary]:text-sm ${rich ? "group/pill origin-center lg:transition-[transform,background-color,box-shadow] lg:duration-300 lg:ease-out lg:focus-within:scale-[1.03] lg:focus-within:bg-surface-subtle lg:focus-within:shadow-[0_10px_30px_#00000033] lg:[&>*]:py-1 lg:[&>*>*>.flex-col]:gap-0 lg:[&_label]:leading-4 lg:[&>*]:transition-[background-color,box-shadow] lg:[&>*:focus-within]:rounded-full lg:[&>*:focus-within]:border-transparent lg:[&>*:focus-within]:bg-surface-raised lg:[&>*:focus-within]:shadow-[0_2px_12px_#0000002e] lg:[&_.date-trigger_svg]:hidden lg:[&_label]:whitespace-nowrap lg:[&_summary]:whitespace-nowrap lg:[&_.date-trigger]:whitespace-nowrap" : ""}`}>
+          {seg(PIN, <Field label={t("search.where")}>
             {({ id }) => (
               <PlaceCombobox id={id} value={place} onChange={setPlace} options={placeOptions} placeholder={t("search.wherePlaceholder")} nearby={{ active: Boolean(preserve?.near), state: nearState, onAsk: askNearby, onStop: () => search({ near: undefined }) }} />
             )}
-          </Field>
-          <Field label={overnight ? t("search.checkIn") : t("search.date")}>
+          </Field>)}
+          {rich ? seg(BED, <div className="flex flex-col gap-2"><span className="type-label">{t("stayType.label")}</span><StayTypeMenu value={stay} onChange={setStay} /></div>) : null}
+          {seg(CAL, <Field label={overnight ? t("search.checkIn") : t("search.date")}>
             {({ id }) => <DateField id={id} label={overnight ? t("search.checkIn") : t("search.date")} kind={overnight ? "in" : "single"} checkIn={checkIn} checkOut={checkOut} min={today} onPick={(r) => { setCheckIn(r.checkIn); setCheckOut(r.checkOut); }} />}
-          </Field>
+          </Field>, overnight ? "" : "lg:col-span-2")}
           {overnight ? (
-            <Field label={t("search.checkOut")}>
+            seg(CAL, <Field label={t("search.checkOut")}>
               {({ id }) => <DateField id={id} label={t("search.checkOut")} kind="out" checkIn={checkIn} checkOut={checkOut} min={today} onPick={(r) => { setCheckIn(r.checkIn); setCheckOut(r.checkOut); }} />}
-            </Field>
-          ) : (
+            </Field>)
+          ) : rich ? null : (
             <div className="hidden lg:block" />
           )}
-          <div className="flex flex-col gap-2">
+          {seg(WHO, <div className="flex flex-col gap-2">
             <span className="type-label">{t("search.guests")}</span>
             <GuestPicker value={guests} onChange={setGuests} />
-          </div>
+          </div>)}
           <div className="lg:pl-2">
+            {variant === "header" ? (
+              <button type="submit" aria-label={t("search.submit")} className="inline-flex h-11 min-w-11 cursor-pointer items-center justify-center rounded-full bg-text-primary px-3 text-surface-raised transition-[padding,opacity] duration-300 hover:opacity-85 group-focus-within/pill:px-5">
+                <svg aria-hidden viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
+                <span className="type-label max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-[max-width,opacity,margin] duration-300 group-focus-within/pill:ml-2 group-focus-within/pill:max-w-24 group-focus-within/pill:opacity-100">{t("search.submit")}</span>
+              </button>
+            ) : (
             <Button type="submit" size="lg" fullWidth className="group lg:rounded-full">
-              <svg aria-hidden viewBox="0 0 24 24" className="size-0 -mr-2 shrink-0 opacity-0 transition-all duration-200 ease-out group-hover:mr-0 group-hover:size-5 group-hover:opacity-100 group-focus-visible:mr-0 group-focus-visible:size-5 group-focus-visible:opacity-100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
+              <svg aria-hidden viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
               {t("search.submit")}
             </Button>
+            )}
           </div>
         </div>
 
 
         {error ? (
-          <p role="alert" className="type-body-sm mt-3 text-error-text">
+          <p role="alert" className={variant === "header" ? "type-body-sm absolute left-4 top-full z-10 mt-2 rounded-field bg-error-bg px-3 py-1.5 text-error-text shadow-raised" : "type-body-sm mt-3 text-error-text"}>
             {error}
           </p>
         ) : null}
@@ -143,7 +168,7 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
       {variant === "summary" ? (
         <MobileSearchSheet
           open={sheet} onClose={() => setSheet(false)} overnight={overnight} today={today} placeOptions={placeOptions} error={error}
-          value={{ place, checkIn, checkOut, guests }}
+          value={{ place, checkIn, checkOut, guests }} stay={stay} onStay={setStay}
           onChange={(v) => { setPlace(v.place); setCheckIn(v.checkIn); setCheckOut(v.checkOut); setGuests(v.guests); }}
           onSubmit={() => search()}
         />

@@ -1,7 +1,11 @@
+import type { Coupon } from "@/domain";
 import { createLocalStore } from "./mocks/localStore";
 
 /** Coupon codes "claimed" in this browser. Real claims must live on the account (docs/02 C-6). */
 export const claimedCouponsStore = createLocalStore<string[]>("claimedCoupons", []);
+
+/** DEMO: coupons made from a code the guest typed in. Any code works for now; there is no coupon backend yet. */
+export const customCouponsStore = createLocalStore<Coupon[]>("customCoupons", []);
 
 /**
  * DEMO: starts every browser with nothing claimed (once, per demo version), so all deals show a "Claim" button
