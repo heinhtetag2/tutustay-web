@@ -6,6 +6,7 @@ import { ResultCard } from "@/features/search/ResultCard";
 import { MapCard } from "@/features/search/MapCard";
 import { NearMeButton } from "@/features/search/NearMeButton";
 import { ViewSwitch } from "@/features/search/ViewSwitch";
+import { ViewToggle } from "@/features/search/ViewToggle";
 import { SearchSplit } from "@/features/search/SearchSplit";
 import { SearchMapView } from "@/features/search/SearchMapView";
 import { LocalLink } from "@/shared/components/LocalLink";
@@ -78,40 +79,33 @@ export default async function SearchPage({
 
   // Grid and list: results across the full width, no map. Same search bar, filters and switch as the split view.
   if (p.view === "grid" || p.view === "list") {
-    const asGrid = p.view === "grid";
     return (
       <>
-        <div className="lg:hidden">
         <div className="relative z-30 border-b lg:hidden border-border-subtle bg-surface-brand-subtle px-4 py-2 sm:px-6 md:px-8 lg:py-3">
           {searchBar}
           {datesRepaired ? <StatusBanner tone="warning" className="mt-3">{t("search.datesRepaired")}</StatusBanner> : null}
         </div>
-        <section aria-label={t("search.results")} className="px-4 pb-12 sm:px-6 md:px-8">
+        <section aria-label={t("search.results")} className="mx-auto w-full max-w-[var(--container-wide)] px-4 pb-12 sm:px-6 md:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3 py-5">
-            <h1 className="type-subheading">{title}</h1>
-            <div className="flex flex-wrap items-center gap-3"><ViewSwitch params={p} locale={locale} /><Filters params={p} sheetOnly count={items.length} /></div>
+            <div className="min-w-0">
+              <h1 className="type-subheading">{title}</h1>
+              {datesRepaired ? <StatusBanner tone="warning" className="mt-3 hidden lg:block">{t("search.datesRepaired")}</StatusBanner> : null}
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <ViewSwitch params={p} locale={locale} />
+              <ViewToggle params={p} locale={locale} current="list" className="lg:fixed lg:bottom-6 lg:left-1/2 lg:z-30 lg:-translate-x-1/2" />
+              <div className="lg:hidden"><Filters params={p} sheetOnly count={items.length} /></div>
+            </div>
           </div>
+          <div className="mb-6 hidden lg:block"><Filters params={p} inline /></div>
           {items.length === 0 ? (
             <EmptyState title={empty.title} body={empty.body} action={empty.action} />
-          ) : asGrid ? (
+          ) : (
             <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {items.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={carry} stayType={p.stayType} foreigner={p.foreigner} layout="card" />)}
             </ul>
-          ) : (
-            <ul className="flex flex-col divide-y divide-border-subtle border-t border-border-subtle">
-              {items.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={carry} stayType={p.stayType} foreigner={p.foreigner} layout="split" />)}
-            </ul>
           )}
         </section>
-        </div>
-        {/* Wide screens always get the list beside the map, even from an old grid or list link. */}
-        <SearchSplit
-          className="hidden lg:flex"
-          items={items} query={carry} stayType={p.stayType} foreigner={p.foreigner} title={title} mapQuery={mapQuery} searchBar={searchBar}
-          notice={datesRepaired ? <StatusBanner tone="warning" className="mt-3">{t("search.datesRepaired")}</StatusBanner> : null}
-          controls={<Filters params={p} sheetOnly count={items.length} />}
-          empty={empty}
-        />
       </>
     );
   }
@@ -119,7 +113,8 @@ export default async function SearchPage({
   return (
     <>
       <SearchSplit
-        items={items} query={carry} stayType={p.stayType} foreigner={p.foreigner} title={title} mapQuery={mapQuery} searchBar={searchBar}
+        items={items} query={carry} stayType={p.stayType} foreigner={p.foreigner} title={title} mapQuery={mapQuery} searchBar={searchBar} inlineFilters={<Filters params={p} inline />}
+        viewToggle={<ViewToggle params={p} locale={locale} current="map" className="lg:absolute lg:bottom-6 lg:left-1/2 lg:z-10 lg:-translate-x-1/2" />}
         notice={datesRepaired ? <StatusBanner tone="warning" className="mt-3">{t("search.datesRepaired")}</StatusBanner> : null}
         controls={<><ViewSwitch params={p} locale={locale} /><Filters params={p} sheetOnly count={items.length} /></>}
         empty={empty}

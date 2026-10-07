@@ -14,7 +14,7 @@ export function Container({ size = "content", className, children }: { size?: ke
   );
 }
 
-/** Vertical rhythm: 48 between sections on desktop, 32 on mobile. */
+/** Vertical rhythm: 32 above and below each section on desktop (64 between), 24 on mobile. */
 export function Section({ className, children, id, divided }: { className?: string; children: ReactNode; id?: string; divided?: boolean }) {
-  return <section id={id} className={cn("scroll-mt-24 py-8 md:py-12", divided && "border-t border-border-subtle", className)}>{children}</section>;
+  return <section id={id} className={cn("scroll-mt-24 py-6 md:py-8", divided && "border-t border-border-subtle", className)}>{children}</section>;
 }

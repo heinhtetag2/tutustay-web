@@ -10,8 +10,10 @@ export function StaySections({ stay, locale }: { stay: Stay; locale: Locale }) {
   const h2 = "type-heading mb-6";
   return (
     <>
-      <Section divided id="about"><h2 className={h2}>{t("stay.about")}</h2><p className="type-body max-w-prose text-text-secondary">{stay.summary.replace(/^Mock listing\.\s*/, "")}</p></Section>
-      <Section divided id="facilities">
+      <Section divided id="about" className="pt-6 pb-6 md:pt-8 md:pb-8"><h2 className={h2}>{t("stay.about")}</h2><div className="type-body flex max-w-prose flex-col gap-4 text-text-primary">
+        {(stay.about?.length ? stay.about : [stay.summary.replace(/^Mock listing\.\s*/, "")]).map((para) => <p key={para}>{para}</p>)}
+      </div></Section>
+      <Section divided id="facilities" className="pt-6 pb-6 md:pt-8 md:pb-8">
         <h2 className={h2}>{t("stay.facilities")}</h2>
         <AmenityGrid items={stay.facilities} />
       </Section>

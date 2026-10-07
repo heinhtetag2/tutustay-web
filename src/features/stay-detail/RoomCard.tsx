@@ -50,7 +50,7 @@ export function RoomCard({ room, locale, stayId, checkIn, checkOut, rooms, stayT
         {bookable ? (
           <>
             <RoomPrice rate={rate} nights={nights} rooms={rooms} stayType={stayType} mode={payment.mode} depositPct={payment.depositPct} />
-            <LinkButton href={`/stays/${stayId}/book?${query}&room=${room.id}`} className="w-full sm:w-auto">{t("room.choose")}</LinkButton>
+            <LinkButton variant="cta" href={`/stays/${stayId}/book?${query}&room=${room.id}`} className="w-full sm:w-auto">{t("room.choose")}</LinkButton>
           </>
         ) : (
           <p className="type-label text-text-secondary">

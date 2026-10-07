@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ratingLabel, type Stay } from "@/domain";
 import { useT } from "@/i18n/I18nProvider";
 import type { RvKey, TopicKey } from "@/services/mocks/reviewDemo";
 import { demoReviewSummary } from "@/services/mocks/reviewDemo";
 import { Section } from "@/shared/layout/Container";
-import { StatusBanner } from "@/shared/ui/StatusBanner";
+import { RatingHero } from "@/shared/ui/RatingHero";
 
 const Star = ({ on }: { on: boolean }) => (
   <svg aria-hidden viewBox="0 0 16 16" className={`size-3.5 ${on ? "text-text-primary" : "text-border-subtle"}`} fill="currentColor"><path d="m8 1.200 2 4.300 4.600.600-3.400 3.200.9 4.600L8 11.600 3.900 13.900l.9-4.600L1.400 6.100 6 5.500Z" /></svg>
@@ -27,95 +27,191 @@ const TopicIcon = ({ name, className = "size-4" }: { name: TopicKey | RvKey; cla
   <svg aria-hidden viewBox="0 0 24 24" className={`${className} shrink-0`} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{TOPIC_ICONS[name]}</svg>
 );
 
+type ReviewData = ReturnType<typeof demoReviewSummary>["cards"][number];
+
+function ReviewCard({ c, clamp = true }: { c: ReviewData; clamp?: boolean }) {
+  const t = useT();
+  return (
+    <li className="flex gap-4">
+      <img src={c.avatar} alt="" loading="lazy" className="size-10 shrink-0 rounded-full object-cover" />
+      <div className="min-w-0">
+        <p className="type-label">{c.author}</p>
+        <p className="type-body-sm text-text-secondary">{t("review.verified", { when: c.when })}</p>
+        <span className="mt-1.5 inline-flex items-center gap-0.5" role="img" aria-label={`${c.score}/5`}>{[1, 2, 3, 4, 5].map((n) => <Star key={n} on={n <= c.score} />)}</span>
+        <p className={`type-body-sm mt-2 ${clamp ? "line-clamp-4" : ""}`}>{c.text}</p>
+      </div>
+    </li>
+  );
+}
+
+type Summary = ReturnType<typeof demoReviewSummary>;
+
+function Distribution({ r }: { r: Summary }) {
+  const t = useT();
+  return (
+    <ul className="flex flex-col gap-3" aria-label={t("rv.overall")}>
+      {r.distribution.map((pct, i) => (
+        <li key={i} className="flex items-center gap-3">
+          <span className="type-body-sm w-14 shrink-0 text-text-primary">{t(5 - i === 1 ? "rv.star" : "rv.stars", { n: 5 - i })}</span>
+          <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-subtle"><span className="block h-full rounded-full bg-text-primary" style={{ width: `${pct}%` }} /></span>
+          <span className="type-body-sm w-10 shrink-0 text-right tabular-nums text-text-primary">{pct}%</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function Categories({ r }: { r: Summary }) {
+  const t = useT();
+  return (
+    <ul className="flex flex-col">
+      {r.categories.slice(0, 4).map((c) => (
+        <li key={c.key} className="flex items-center justify-between gap-4 border-b border-border-subtle py-2.5 first:pt-0 last:border-b-0 last:pb-0">
+          <span className="type-body-sm flex items-center gap-3 text-text-primary"><TopicIcon name={c.key} className="size-[1.125rem]" />{t(`rv.${c.key}`)}</span>
+          <span className="type-label tabular-nums">{c.score.toFixed(1)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const SORTS = ["recent", "high", "low"] as const;
+
+/** All reviews on their own full page (native <dialog>, covers the screen): rating panel on the left, searchable and sortable list on the right. */
+function AllReviews({ open, onClose, stay, r }: { open: boolean; onClose: () => void; stay: Stay & { rating: NonNullable<Stay["rating"]> }; r: Summary }) {
+  const t = useT();
+  const ref = useRef<HTMLDialogElement>(null);
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<(typeof SORTS)[number]>("recent");
+  useEffect(() => {
+    const d = ref.current;
+    if (!d) return;
+    if (open && !d.open) d.showModal();
+    if (!open && d.open) d.close();
+  }, [open]);
+  const q = query.trim().toLowerCase();
+  const list = r.cards
+    .map((c, i) => ({ c, i }))
+    .filter(({ c }) => !q || `${c.text} ${c.author}`.toLowerCase().includes(q))
+    .sort((a, b) => (sort === "high" ? b.c.score - a.c.score : sort === "low" ? a.c.score - b.c.score : 0) || a.i - b.i)
+    .map(({ c }) => c);
+  const closeBtn = "inline-flex size-11 cursor-pointer items-center justify-center rounded-full border border-border-subtle bg-surface-raised hover:bg-surface-subtle";
+  return (
+    <dialog
+      ref={ref} aria-label={t("stay.reviews")} onClose={onClose}
+      className="m-0 h-dvh max-h-none w-screen max-w-none overflow-y-auto bg-surface-raised p-0 text-text-primary backdrop:bg-black/50"
+    >
+      {open ? (
+        <div className="mx-auto max-w-[1200px] px-5 pb-16 sm:px-8">
+          <div className="sticky top-0 z-10 -mx-5 flex items-center justify-between bg-surface-raised px-5 py-4 sm:-mx-8 sm:px-8">
+            <button type="button" aria-label={t("common.close")} onClick={onClose} className={closeBtn}>
+              <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
+            </button>
+            <button type="button" aria-label={t("common.close")} onClick={onClose} className={closeBtn}>
+              <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+            </button>
+          </div>
+
+          <div className="mt-4 grid gap-10 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-16">
+            <aside className="self-start overflow-hidden rounded-card border border-border-subtle lg:sticky lg:top-24">
+              <div className="bg-surface-subtle px-6 py-8">
+                <RatingHero score={stay.rating.score} label={t(`rating.${ratingLabel(stay.rating.score)}`)} basedOn={t("rv.basedOn", { n: stay.rating.count.toLocaleString() })} />
+              </div>
+              <div className="flex flex-col gap-8 p-6">
+                <div>
+                  <p className="type-subheading mb-4">{t("rv.overall")}</p>
+                  <Distribution r={r} />
+                </div>
+                <div>
+                  <p className="type-subheading mb-4">{t("rv.categories")}</p>
+                  <Categories r={r} />
+                </div>
+              </div>
+              <div className="border-t border-border-subtle p-6">
+                <p className="type-subheading">{t("rv.trust")}</p>
+                <p className="type-body-sm mt-1 text-text-secondary">{t("review.rule")}</p>
+              </div>
+            </aside>
+
+            <div>
+              <h2 className="type-title">{t("stay.reviews")}</h2>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <label className="relative min-w-0 flex-1">
+                  <span className="sr-only">{t("rv.search")}</span>
+                  <svg aria-hidden viewBox="0 0 24 24" className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-secondary" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="6.500" /><path d="m16 16 4.500 4.500" /></svg>
+                  <input
+                    type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("rv.search")}
+                    className="type-body-sm min-h-12 w-full rounded-full border border-border-control bg-surface-raised pl-11 pr-4"
+                  />
+                </label>
+                <label className="relative">
+                  <span className="sr-only">{t("rv.sort")}</span>
+                  <select
+                    value={sort} onChange={(e) => setSort(e.target.value as (typeof SORTS)[number])}
+                    className="type-label min-h-12 cursor-pointer appearance-none rounded-full border border-border-control bg-surface-raised pl-5 pr-10"
+                  >
+                    {SORTS.map((k) => <option key={k} value={k}>{t(`rv.sort.${k}`)}</option>)}
+                  </select>
+                  <svg aria-hidden viewBox="0 0 16 16" className="pointer-events-none absolute right-4 top-1/2 size-3.5 -translate-y-1/2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m4 6 4 4 4-4" /></svg>
+                </label>
+              </div>
+              {list.length ? (
+                <ul className="mt-8 flex flex-col divide-y divide-border-subtle [&>li]:py-7 [&>li:first-child]:pt-0">
+                  {list.map((c) => <ReviewCard key={c.author} c={c} clamp={false} />)}
+                </ul>
+              ) : (
+                <p className="type-body mt-10 text-text-secondary">{t("rv.noMatch")}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </dialog>
+  );
+}
+
 /** Airbnb-style review block: overall score + star distribution, category scores, topics guests mention, review cards. Demo data. */
 export function StayReviews({ stay }: { stay: Stay }) {
   const t = useT();
-  const [topic, setTopic] = useState<TopicKey | null>(null);
+  const [all, setAll] = useState(false);
   if (!stay.rating) {
     return <Section divided id="reviews"><h2 className="type-heading mb-4">{t("stay.reviews")}</h2><p className="type-body text-text-secondary">{t("review.none")}</p></Section>;
   }
   const r = demoReviewSummary(stay);
-  const cards = topic ? r.cards.filter((c) => c.topics.includes(topic)) : r.cards;
+  const cards = r.cards;
+  const PREVIEW = 4;
   return (
-    <Section divided id="reviews">
-      <h2 className="type-heading mb-6 flex flex-wrap items-baseline gap-x-3">
-        <span className="inline-flex items-center gap-2"><svg aria-hidden viewBox="0 0 16 16" className="size-5" fill="currentColor"><path d="m8 1.200 2 4.300 4.600.600-3.400 3.200.9 4.600L8 11.600 3.900 13.900l.9-4.600L1.400 6.100 6 5.500Z" /></svg>{stay.rating.score.toFixed(1)}</span>
-        <span className="font-normal text-text-secondary">· {t("review.count", { n: stay.rating.count })}</span>
+    <Section divided id="reviews" className="pt-6 pb-6 md:pt-8 md:pb-8">
+      <h2 className="type-heading mb-8 flex items-center gap-3">
+        {t("stay.reviews")}
+        <span className="type-body-sm rounded-full border border-border-subtle px-2.5 py-0.5 font-medium text-text-secondary">{stay.rating.count.toLocaleString()}</span>
       </h2>
+      <div className="mb-10 border-b border-border-subtle pb-10">
+        <RatingHero score={stay.rating.score} label={t(`rating.${ratingLabel(stay.rating.score)}`)} basedOn={t("rv.basedOn", { n: stay.rating.count.toLocaleString() })} />
+      </div>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-12">
+      <div className="grid gap-10 md:grid-cols-2 md:gap-14">
         <div>
-          <p className="type-label mb-3">{t("rv.overall")}</p>
-          <p className="type-display">{stay.rating.score.toFixed(1)}</p>
-          <p className="type-body-sm mb-4 text-text-secondary">{t(`rating.${ratingLabel(stay.rating.score)}`)}</p>
-          <ul className="flex flex-col gap-2" aria-label={t("rv.overall")}>
-            {r.distribution.map((pct, i) => (
-              <li key={i} className="flex items-center gap-3">
-                <span className="type-body-sm w-12 shrink-0 text-text-secondary">{t("rv.stars", { n: 5 - i })}</span>
-                <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-subtle"><span className="block h-full rounded-full bg-text-primary" style={{ width: `${pct}%` }} /></span>
-                <span className="type-body-sm w-9 shrink-0 text-right tabular-nums">{pct}%</span>
-              </li>
-            ))}
-          </ul>
+          <p className="type-label mb-4">{t("rv.overall")}</p>
+          <Distribution r={r} />
         </div>
 
-        <div className="flex flex-col gap-8">
-          <div>
-            <p className="type-label mb-3">{t("rv.categories")}</p>
-            <ul className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3">
-              {r.categories.map((c) => (
-                <li key={c.key} className="flex items-center justify-between gap-3 border-b border-border-subtle pb-3">
-                  <span className="type-body-sm flex items-center gap-2 text-text-secondary"><TopicIcon name={c.key} />{t(`rv.${c.key}`)}</span>
-                  <span className="type-label tabular-nums">{c.score.toFixed(1)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <p className="type-label mb-3">{t("rv.mention")}</p>
-            <ul className="flex flex-wrap gap-2">
-              {r.topics.map((x) => {
-                const on = topic === x.key;
-                return (
-                  <li key={x.key}>
-                    <button
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => setTopic(on ? null : x.key)}
-                      className={`type-body-sm inline-flex cursor-pointer select-none items-center gap-2 rounded-full border px-4 py-1.5 transition-colors ${on ? "border-text-primary bg-text-primary text-surface-raised" : "border-border-subtle bg-surface-raised hover:border-text-primary"}`}
-                    >
-                      <TopicIcon name={x.key} />{t(`rv.${x.key}`)} <span className={on ? "opacity-70" : "text-text-secondary"}>{x.count}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+        <div>
+          <p className="type-label mb-4">{t("rv.categories")}</p>
+          <Categories r={r} />
         </div>
       </div>
 
-      {topic && (
-        <p className="type-body-sm mt-10 flex flex-wrap items-center gap-x-3 text-text-secondary" role="status">
-          {t("rv.filtered", { n: cards.length, topic: t(`rv.${topic}`).toLowerCase() })}
-          <button type="button" onClick={() => setTopic(null)} className="type-label cursor-pointer text-text-primary underline underline-offset-4">{t("rv.clear")}</button>
-        </p>
-      )}
-      <ul className="mt-6 grid gap-x-12 gap-y-8 md:grid-cols-2">
-        {cards.map((c) => (
-          <li key={c.author}>
-            <div className="mb-3 flex items-center gap-3">
-              <img src={c.avatar} alt="" loading="lazy" className="size-12 shrink-0 rounded-full object-cover" />
-              <div>
-                <p className="type-label">{c.author}</p>
-                <p className="type-body-sm text-text-secondary">{t("review.verified", { when: c.when })}</p>
-              </div>
-            </div>
-            <p className="mb-2 flex items-center gap-0.5" role="img" aria-label={`${c.score}/5`}>{[1, 2, 3, 4, 5].map((n) => <Star key={n} on={n <= c.score} />)}</p>
-            <p className="type-body line-clamp-4">{c.text}</p>
-          </li>
-        ))}
+      <ul className="mt-12 grid gap-x-14 gap-y-10 border-t border-border-subtle pt-10 md:grid-cols-2">
+        {cards.slice(0, PREVIEW).map((c) => <ReviewCard key={c.author} c={c} />)}
       </ul>
-      <StatusBanner tone="info" className="mt-10">{t("review.rule")}</StatusBanner>
+      <button
+        type="button" onClick={() => setAll(true)} aria-haspopup="dialog"
+        className="type-label mt-10 inline-flex min-h-12 cursor-pointer items-center rounded-full border border-border-control bg-surface-raised px-6 hover:bg-surface-subtle"
+      >
+        {t("rv.showAll", { n: stay.rating.count.toLocaleString() })}
+      </button>
+      <AllReviews open={all} onClose={() => setAll(false)} stay={stay as Stay & { rating: NonNullable<Stay["rating"]> }} r={r} />
     </Section>
   );
 }

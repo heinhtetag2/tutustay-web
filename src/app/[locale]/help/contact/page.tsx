@@ -15,7 +15,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   const card = "rounded-card border border-border-subtle bg-surface-raised p-5";
   return (
     <Container size="narrow" className="py-8">
-      <PageHeader back="/help" title={t("help.contact")} description={t("contact.intro")} />
+      <PageHeader crumbs={[{ href: "/help", label: t("nav.help") }]} title={t("help.contact")} description={t("contact.intro")} />
       <div className="flex flex-col gap-4">
         <section className={card}><h2 className="type-subheading">{t("contact.cancelTitle")}</h2><p className="type-body mt-1 text-text-secondary">{t("contact.cancelBody")}</p></section>
         <section className={card}>

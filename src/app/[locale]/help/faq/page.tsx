@@ -13,7 +13,7 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
   const t = createT(locale);
   return (
     <Container size="narrow" className="py-8">
-      <PageHeader back="/help" title={t("help.faq")} description={t("help.faqBody")} />
+      <PageHeader crumbs={[{ href: "/help", label: t("nav.help") }]} title={t("help.faq")} description={t("help.faqBody")} />
       <FaqList />
     </Container>
   );

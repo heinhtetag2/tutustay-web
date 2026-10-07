@@ -27,9 +27,7 @@ function demo(ref: string, over: Partial<Booking> & Pick<Booking, "status" | "st
 export function demoBookings(): Booking[] {
   const t = todayIso();
   return [
-    demo("MOCK-DEMO01", { status: "confirmed", mode: "online", stayId: "st-06", stayName: "Ngapali Palm Resort", roomId: "st-06-a", roomName: "Palm Garden Room", checkIn: addDays(t, 12), checkOut: addDays(t, 15), adults: 2 }, 150000, 3),
-    demo("MOCK-DEMO02", { status: "accepted", mode: "online", payBy: new Date(Date.now() + 24 * 3600_000).toISOString(), stayId: "st-03", stayName: "Golden Bay Retreat", roomId: "st-03-a", roomName: "Garden Bungalow", checkIn: addDays(t, 25), checkOut: addDays(t, 27), adults: 2 }, 120000, 2),
-    demo("MOCK-DEMO03", { status: "pending", stayId: "st-04", stayName: "Pinewood Moonlight Camp", roomId: "st-04-a", roomName: "Tent for 2", checkIn: addDays(t, 40), checkOut: addDays(t, 41), adults: 2 }, 30000, 1),
+    demo("MOCK-DEMO01", { status: "pending", stayId: "st-08", stayName: "Hlaing River Hotel", roomId: "st-08-b", roomName: "Business Double", checkIn: addDays(t, 14), checkOut: addDays(t, 16), adults: 2 }, 48000, 2),
     demo("MOCK-DEMO04", { status: "completed", stayId: "st-01", stayName: "Shwe Pann Hotel", roomId: "st-01-a", roomName: "Standard Double", checkIn: addDays(t, -35), checkOut: addDays(t, -33) }, 45000, 2),
     demo("MOCK-DEMO05", { status: "completed", stayId: "st-07", stayName: "Mandalay Lantern Inn", roomId: "st-07-a", roomName: "Standard Room", checkIn: addDays(t, -70), checkOut: addDays(t, -68), adults: 1 }, 28000, 2),
     demo("MOCK-DEMO06", { status: "cancelled", stayId: "st-02", stayName: "Inya Lakeside Guest House", roomId: "st-02-a", roomName: "Fan Room", checkIn: addDays(t, -20), checkOut: addDays(t, -19), adults: 1 }, 15000, 1),

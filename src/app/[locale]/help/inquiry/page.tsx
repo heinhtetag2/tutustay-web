@@ -14,7 +14,7 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
   const t = createT(locale);
   return (
     <Container size="narrow" className="py-8">
-      <PageHeader back="/help" title={t("enquiry.write")} />
+      <PageHeader crumbs={[{ href: "/help", label: t("nav.help") }]} title={t("enquiry.write")} />
       <AuthGate reason="account"><EnquiryForm /></AuthGate>
     </Container>
   );

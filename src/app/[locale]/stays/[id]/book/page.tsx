@@ -33,7 +33,7 @@ export default async function BookPage({ params, searchParams }: Props) {
 
   return (
     <Container className="py-8">
-      <PageHeader back={`/stays/${id}`} title={t("review.title")} description={stay.name} />
+      <PageHeader crumbs={[{ href: `/stays/${id}`, label: stay.name }, { href: `/stays/${id}/rooms${backQs ? `?${backQs}` : ""}`, label: t("stay.rooms") }]} crumbLabel={t("crumb.review")} future={[t("crumb.confirmation")]} title={t("review.title")} description={stay.name} />
       {!bookable || !room ? (
         // Recovery: the selection is preserved in the URL, so "Back to rooms" restores the same search.
         <ErrorState

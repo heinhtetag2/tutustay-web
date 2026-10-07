@@ -43,6 +43,8 @@ export function DateField({ id, label, kind, checkIn, checkOut, min, onPick, ali
   const [focusDate, setFocusDate] = useState(value || min);
   const [shift, setShift] = useState(0);
   const kbd = useRef(false);
+  // Open on mouse-down: the search bar widens as soon as a field is pressed, so by mouse-up the field has moved and the click would be lost.
+  const downHandled = useRef(false);
 
   const names = useMemo(() => {
     const month = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: "UTC" });
@@ -198,7 +200,8 @@ export function DateField({ id, label, kind, checkIn, checkOut, min, onPick, ali
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={`${label}: ${value ? formatDate(value, false, locale) : t("date.choose")}`}
-        onClick={() => (open ? close(false) : show())}
+        onPointerDown={(e) => { if (e.pointerType !== "mouse" || e.button !== 0) return; e.preventDefault(); downHandled.current = true; if (open) close(false); else show(); }}
+        onClick={() => { if (downHandled.current) { downHandled.current = false; return; } if (open) close(false); else show(); }}
         className="date-trigger type-body flex min-h-11 w-full items-center justify-between gap-2 rounded-field border border-border-control bg-surface-raised px-3 text-left"
       >
         <span className={value ? "" : "text-text-muted"}>{value ? formatDate(value, true, locale) + (value.slice(0, 4) !== min.slice(0, 4) ? ` ${value.slice(0, 4)}` : "") : t("date.choose")}</span>

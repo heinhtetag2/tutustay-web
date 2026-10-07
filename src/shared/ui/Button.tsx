@@ -4,13 +4,15 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { LocalLink } from "../components/LocalLink";
 import { cn } from "../lib/cn";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "cta" | "secondary" | "ghost";
 type Size = "md" | "lg";
 
 const base =
   "inline-flex items-center justify-center gap-2 type-label font-medium transition-[background-color,color,transform,box-shadow] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:text-text-disabled disabled:border-transparent";
 const variants: Record<Variant, string> = {
   primary: "bg-action-primary text-text-on-action hover:bg-action-primary-hover active:bg-action-primary-pressed",
+  /** The booking call to action: brand blue (Reserve, Choose room). */
+  cta: "bg-action-cta text-text-on-action hover:bg-action-cta-hover active:bg-action-cta-hover",
   secondary: "border border-text-primary bg-surface-raised text-text-primary hover:bg-surface-subtle",
   ghost: "text-text-link hover:bg-surface-brand-subtle",
 };

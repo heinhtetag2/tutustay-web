@@ -15,9 +15,11 @@
   --text-brand: var(--p-brand-700);
 
   --brand: var(--p-brand-600); /* identity: logo, icons, large fills, selection */
-  --action-primary: var(--p-brand-700); /* D-1: AA with white text (5.93:1) */
+  --action-primary: var(--p-brand-700); /* brand blue: AA with white text (5.93:1) */
   --action-primary-hover: var(--p-brand-800);
   --action-primary-pressed: var(--p-brand-900);
+  --action-cta: var(--p-brand-700); /* the booking call to action keeps the brand blue (AA with white text) */
+  --action-cta-hover: var(--p-brand-800);
 
   --border-subtle: var(--p-neutral-300);
   --border-control: var(--p-neutral-450);
@@ -36,9 +38,9 @@
   --promo-bg: var(--p-promo-100);
 
   /* Layout tokens */
-  --gutter: 16px;
+  --gutter: 20px;
   --container-narrow: 640px;
-  --container-content: 1280px; /* ONE page width everywhere (search, detail, home, the rest): the same left and right margins on every page */
+  --container-content: 1200px; /* ONE page width everywhere (home, stay, rooms, booking, account...): the same left and right margins on every page */
   --container-wide: 1280px;
 }
 @media (min-width: 640px) { :root { --gutter: 24px; } }

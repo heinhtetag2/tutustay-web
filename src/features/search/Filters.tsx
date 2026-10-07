@@ -1,12 +1,12 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PropertyCategory } from "@/domain";
 import { dataLabel } from "@/i18n/dataLabels";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { Button } from "@/shared/ui/Button";
-import { StayTypePicker } from "@/shared/components/StayTypePicker";
+import { CategoryIcon } from "@/shared/ui/CategoryIcon";
 import { Checkbox, Field, Input, Select } from "@/shared/ui/Field";
 import { PriceRange } from "./PriceRange";
 import { SORTS, toQueryString, type SearchParams } from "@/validation/search";
@@ -17,8 +17,21 @@ const ROOM_FACILITIES = ["AC", "WiFi", "Electric kettle", "Fan", "Daily Housekee
 const BEDS = ["Single", "Double", "Twin", "Queen", "King"];
 const RATING_BANDS = [4.5, 4, 3, 2] as const;
 
+const CHIP_ICON = {
+  sort: <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" />,
+  popular: <path d="M12 3c1 3.500 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 2.500 1.500 2.500C11 9 11 6 12 3Z" />,
+  bookable: <><rect x="4" y="5" width="16" height="15" rx="2.500" /><path d="M8 3v4M16 3v4M4 10h16M9 15l2 2 4-4" /></>,
+  coupons: <><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4Z" /><path d="M14 6v12" strokeDasharray="2 2.500" /></>,
+  refundable: <><path d="M4 12a8 8 0 1 0 2.500-5.800" /><path d="M4 4v4.500h4.500" /></>,
+  more: <><path d="M3 7h9M18 7h3M3 17h3M12 17h9" /><circle cx="15" cy="7" r="2.500" /><circle cx="9" cy="17" r="2.500" /></>,
+  clear: <path d="M6 6l12 12M18 6 6 18" />,
+} as const;
+const ChipIcon = ({ name }: { name: keyof typeof CHIP_ICON }) => (
+  <svg aria-hidden viewBox="0 0 24 24" className="size-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{CHIP_ICON[name]}</svg>
+);
+
 /** Filters apply live (replace URL). On small screens they sit in a disclosure sheet. */
-export function Filters({ params, sheetOnly = false, sidebar = false, count }: { params: SearchParams; sheetOnly?: boolean; sidebar?: boolean; count?: number }) {
+export function Filters({ params, sheetOnly = false, sidebar = false, inline = false, count }: { params: SearchParams; sheetOnly?: boolean; sidebar?: boolean; inline?: boolean; count?: number }) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -32,7 +45,7 @@ export function Filters({ params, sheetOnly = false, sidebar = false, count }: {
   };
 
   const active =
-    Number(Boolean(params.category)) + Number(Boolean(params.minRating)) + Number(params.refundable) +
+    Number(Boolean(params.minRating)) + Number(params.refundable) +
     Number(params.popular) + Number(params.bookable) + Number(params.coupons) + params.beds.length + params.roomFacilities.length +
     params.facilities.length + Number(params.minPrice !== undefined || params.maxPrice !== undefined);
 
@@ -40,18 +53,8 @@ export function Filters({ params, sheetOnly = false, sidebar = false, count }: {
 
   const body = (
     <div className={sidebar ? "flex flex-col gap-5 [&>*]:border-b [&>*]:border-border-subtle [&>*]:pb-5 [&>*:last-child]:border-b-0" : "flex flex-col gap-6"}>
-      {/* In the Filter & Sort modal the stay type lives in the main search bar instead. */}
-      {sheetOnly ? null : <StayTypePicker stayType={params.stayType} sessionHours={params.sessionHours} onChange={(s) => apply(s)} />}
-
-      <Field label={t("filter.category")}>
-        {({ id }) => (
-          <Select id={id} value={params.category ?? ""} onChange={(e) => apply({ category: (e.target.value || undefined) as PropertyCategory | undefined })}>
-            <option value="">{t("filter.allCategories")}</option>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{t(`category.${c}`)}</option>)}
-          </Select>
-        )}
-      </Field>
-
+      {/* The stay type lives in the search bar and the property type menu above the results, not in this panel. */}
+      {inline ? null : (<>
       <fieldset className="flex flex-col gap-3">
         <legend className="type-label mb-2">{t("filter.quick")}</legend>
         <Checkbox label={t("filter.popular")} checked={params.popular} onChange={(e) => apply({ popular: e.target.checked })} />
@@ -64,6 +67,8 @@ export function Filters({ params, sheetOnly = false, sidebar = false, count }: {
         <PriceRange min={params.minPrice} max={params.maxPrice} onCommit={(a, b) => apply({ minPrice: a, maxPrice: b })} />
       </fieldset>
 
+      </>)}
+
       <Field label={t("filter.rating")}>
         {({ id }) => (
           <Select id={id} value={params.minRating ?? ""} onChange={(e) => apply({ minRating: e.target.value ? Number(e.target.value) : undefined })}>
@@ -73,7 +78,7 @@ export function Filters({ params, sheetOnly = false, sidebar = false, count }: {
         )}
       </Field>
 
-      <Checkbox label={t("filter.refundable")} checked={params.refundable} onChange={(e) => apply({ refundable: e.target.checked })} />
+      {inline ? null : <Checkbox label={t("filter.refundable")} checked={params.refundable} onChange={(e) => apply({ refundable: e.target.checked })} />}
 
       <fieldset className="flex flex-col gap-3">
         <legend className="type-label mb-2">{t("filter.beds")}</legend>
@@ -106,6 +111,36 @@ export function Filters({ params, sheetOnly = false, sidebar = false, count }: {
       ) : null}
     </div>
   );
+
+  // A slim row of always-visible controls floating over the map (no modal). Price and the rest live in a "More filters" dropdown.
+  if (inline) {
+    const pill = "type-body-sm inline-flex min-h-10 items-center gap-1.5 cursor-pointer whitespace-nowrap rounded-full border px-3.5 shadow-[0_2px_8px_#00000026] transition-colors";
+    const chip = (on: boolean) => `${pill} ${on ? "border-border-focus bg-surface-brand-subtle font-semibold text-text-brand" : "border-border-control bg-surface-raised hover:bg-surface-subtle"}`;
+    return (
+      <div role="group" aria-label={t("filter.title")} className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 rounded-full bg-surface-raised pl-3.5 shadow-[0_2px_8px_#00000026]"><ChipIcon name="sort" /><SortSelect params={params} /></div>
+        <PropertyTypeMenu value={params.category} onChange={(category) => apply({ category })} pillCls={pill} />
+        <button type="button" aria-pressed={params.popular} onClick={() => apply({ popular: !params.popular })} className={chip(params.popular)}><ChipIcon name="popular" />{t("filter.popular")}</button>
+        <button type="button" aria-pressed={params.bookable} onClick={() => apply({ bookable: !params.bookable })} className={chip(params.bookable)}><ChipIcon name="bookable" />{t("filter.bookable")}</button>
+        <button type="button" aria-pressed={params.coupons} onClick={() => apply({ coupons: !params.coupons })} className={chip(params.coupons)}><ChipIcon name="coupons" />{t("filter.coupons")}</button>
+        <button type="button" aria-pressed={params.refundable} onClick={() => apply({ refundable: !params.refundable })} className={chip(params.refundable)}><ChipIcon name="refundable" />{t("filter.refundable")}</button>
+        <details className="group relative">
+          <summary className={`${chip(false)} flex list-none items-center gap-2 [&::-webkit-details-marker]:hidden`}>
+            <ChipIcon name="more" />{t("filter.more")}{active ? ` (${active})` : ""}
+            <svg aria-hidden viewBox="0 0 24 24" className="size-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+          </summary>
+          <div className="no-scrollbar absolute left-0 top-full z-20 mt-2 max-h-[min(34rem,calc(100dvh-14rem))] w-80 overflow-y-auto rounded-card border border-border-subtle bg-surface-raised p-5 shadow-[0_8px_32px_#00000040]">
+            <fieldset className="mb-5 flex flex-col gap-2 border-b border-border-subtle pb-5">
+              <legend className="type-label mb-2">{t("filter.price")}</legend>
+              <PriceRange min={params.minPrice} max={params.maxPrice} onCommit={(a, b) => apply({ minPrice: a, maxPrice: b })} />
+            </fieldset>
+            {body}
+          </div>
+        </details>
+        {active > 0 ? <button type="button" onClick={clearAll} className={`${pill} inline-flex items-center gap-1.5 border-transparent bg-surface-raised text-text-link`}><ChipIcon name="clear" />{t("filter.clear")}</button> : null}
+      </div>
+    );
+  }
 
   // Booking.com-style flat column for the full-screen map: heading, then sections divided by lines. Scrolls with its parent.
   if (sidebar) {
@@ -188,7 +223,7 @@ export function SortSelect({ params }: { params: SearchParams }) {
     <label className="flex items-center gap-2">
       <span className="type-label whitespace-nowrap">{t("sort.label")}</span>
       <Select
-        className="w-auto min-h-10 rounded-full pl-4 pr-9 text-sm"
+        className="w-auto min-h-10 gap-2 rounded-full pl-4 pr-3.5 text-sm"
         value={params.sort}
         onChange={(e) => {
           const qs = toQueryString({ ...params, sort: e.target.value as SearchParams["sort"] });
@@ -202,3 +237,45 @@ export function SortSelect({ params }: { params: SearchParams }) {
 }
 
 
+
+/** Property type as a small menu with an icon per option (the native select cannot show icons). */
+function PropertyTypeMenu({ value, onChange, pillCls }: { value: PropertyCategory | undefined; onChange: (v: PropertyCategory | undefined) => void; pillCls: string }) {
+  const t = useT();
+  const root = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const close = () => { if (root.current) root.current.open = false; };
+    const away = (e: Event) => { if (root.current?.open && !root.current.contains(e.target as Node)) close(); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
+  }, []);
+  const options: { key: PropertyCategory | undefined; label: string }[] = [
+    { key: undefined, label: t("filter.allCategories") },
+    ...CATEGORIES.map((c) => ({ key: c, label: t(`category.${c}`) })),
+  ];
+  const current = options.find((o) => o.key === value) ?? options[0]!;
+  return (
+    <details ref={root} className="group relative">
+      <summary aria-label={t("filter.category")} className={`${pillCls} flex list-none items-center gap-2 border-border-control bg-surface-raised [&::-webkit-details-marker]:hidden`}>
+        <CategoryIcon name={current.key ?? "all"} className="size-4" />
+        {current.label}
+        <svg aria-hidden viewBox="0 0 24 24" className="size-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+      </summary>
+      <ul role="listbox" aria-label={t("filter.category")} className="absolute left-0 top-full z-20 mt-2 w-64 rounded-card border border-border-subtle bg-surface-raised p-2 text-text-primary shadow-[0_8px_32px_#00000040]">
+        {options.map((o) => {
+          const on = o.key === value;
+          return (
+            <li key={o.key ?? "all"} role="option" aria-selected={on}>
+              <button type="button" onClick={() => { onChange(o.key); if (root.current) root.current.open = false; }} className={`type-body-sm flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-control px-3 text-left ${on ? "bg-surface-brand-subtle font-semibold text-text-brand" : "hover:bg-surface-subtle"}`}>
+                <span aria-hidden className={`flex size-8 shrink-0 items-center justify-center rounded-full ${on ? "bg-surface-raised" : "bg-surface-subtle"}`}><CategoryIcon name={o.key ?? "all"} className="size-4" /></span>
+                <span className="flex-1">{o.label}</span>
+                {on ? <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.200" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5 9-10" /></svg> : null}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </details>
+  );
+}

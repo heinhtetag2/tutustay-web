@@ -14,7 +14,7 @@ export async function NearbyStays({ stay, locale, params, query }: { stay: Stay;
   const others = items.filter((i) => i.stay.id !== stay.id).slice(0, 4);
   if (others.length === 0) return null;
   return (
-    <Section divided id="nearby">
+    <Section id="nearby" className="pt-6 pb-6 md:pt-8 md:pb-8">
       <h2 className="type-heading">{t("stay.nearby")}</h2>
       <p className="type-body mb-6 text-text-secondary">{t("stay.nearbyHint", { city: stay.place.city })}</p>
       <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">

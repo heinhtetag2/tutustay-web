@@ -20,12 +20,12 @@
   --p-neutral-300: #dddddd; /* deco: hairlines, outlined buttons */
   --p-neutral-400: #b0b0b0; /* bobo: disabled text */
   --p-neutral-450: #8a8a8a; /* control borders, 3.4:1 on white */
-  --p-neutral-500: #6a6a6a; /* foggy: all supporting text, 5.3:1 on white */
+  --p-neutral-500: #767676; /* supporting text, 4.5:1 on white (Fresha grey) */
   --p-neutral-600: #484848;
   --p-neutral-700: #3f3f3f;
   --p-neutral-800: #2b2b2b;
-  --p-neutral-900: #222222; /* hof: primary text */
-  --p-neutral-950: #222222;
+  --p-neutral-900: #0d0d0d; /* hof: primary text */
+  --p-neutral-950: #0d0d0d;
 
   --p-success-50: #ecfdf3;
   --p-success-700: #027a48;

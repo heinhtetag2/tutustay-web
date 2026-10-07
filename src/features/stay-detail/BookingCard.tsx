@@ -10,6 +10,7 @@ import { Checkbox, Field } from "@/shared/ui/Field";
 import { Price } from "@/shared/ui/Price";
 import { toQueryString, type SearchParams } from "@/validation/search";
 import { useState } from "react";
+import { LocalLink } from "@/shared/components/LocalLink";
 
 interface Props {
   params: SearchParams;
@@ -19,13 +20,15 @@ interface Props {
   fromRate: number | null;
   soldOut?: boolean;
   sessionHours?: readonly number[];
+  /** On the stay page: where "Reserve" goes (the rooms screen). Without it the button jumps to the rooms on this page. */
+  reserveHref?: string | null;
 }
 
 /**
  * Sticky booking card (desktop right column). It edits the same URL the room list reads,
  * so the selection survives refresh, sharing and the sign-in gate.
  */
-export function BookingCard({ params, today, offered, fromRate, soldOut, sessionHours }: Props) {
+export function BookingCard({ params, today, offered, fromRate, soldOut, sessionHours, reserveHref }: Props) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -49,7 +52,7 @@ export function BookingCard({ params, today, offered, fromRate, soldOut, session
   const unit = overnight ? t("price.perNight") : t("price.perStay");
 
   return (
-    <aside aria-label={t("booking.card")} className="hidden flex-col gap-4 self-start rounded-field lg:flex border border-border-subtle bg-surface-raised p-6 shadow-raised lg:sticky lg:top-6">
+    <aside aria-label={t("booking.card")} className="hidden flex-col gap-4 self-start rounded-field lg:flex border border-border-subtle bg-surface-raised p-6 shadow-raised lg:sticky lg:top-6 lg:z-20">
       <div>
         {fromRate !== null ? (
           <Price amount={fromRate} unit={unit} size="lg" prefix={t("price.from")} />
@@ -84,10 +87,12 @@ export function BookingCard({ params, today, offered, fromRate, soldOut, session
       />
       {error ? <p role="alert" className="type-body-sm text-error-text">{error}</p> : null}
       <p className="type-body-sm text-text-secondary">{t("booking.dates", { from: formatDate(params.checkIn, false, locale), to: overnight ? formatDate(params.checkOut, false, locale) : "—" })}</p>
-      <a href="#rooms" className="type-label inline-flex min-h-12 items-center justify-center rounded-full bg-action-primary px-6 text-text-on-action hover:bg-action-primary-hover">
-        {t("booking.seeRooms")}
-      </a>
-      <p className="type-body-sm text-center text-text-secondary">{t("booking.nothingChargedYet")}</p>
+      {reserveHref === null ? null : reserveHref ? (
+        <LocalLink href={reserveHref} className="type-label inline-flex min-h-12 items-center justify-center rounded-full bg-action-cta px-6 text-text-on-action hover:bg-action-cta-hover">{t("booking.reserve")}</LocalLink>
+      ) : (
+        <a href="#rooms" className="type-label inline-flex min-h-12 items-center justify-center rounded-full bg-action-cta px-6 text-text-on-action hover:bg-action-cta-hover">{t("booking.seeRooms")}</a>
+      )}
+      {reserveHref === null ? null : <p className="type-body-sm text-center text-text-secondary">{t("booking.nothingChargedYet")}</p>}
     </aside>
   );
 }

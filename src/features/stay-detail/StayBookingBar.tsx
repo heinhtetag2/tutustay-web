@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { addDays, formatDate, isValidStayRange, LIMITS, type SessionHours, type StayType } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
+import { LocalLink } from "@/shared/components/LocalLink";
 import { MobileCalendar } from "@/shared/components/MobileCalendar";
 import { StayTypePicker } from "@/shared/components/StayTypePicker";
 import { guestSummaryText } from "@/shared/lib/guestSummary";
@@ -20,13 +21,15 @@ interface Props {
   fromRate: number | null;
   soldOut?: boolean;
   sessionHours?: readonly number[];
+  /** On the stay page: where "Reserve" goes (the rooms screen). */
+  reserveHref?: string;
 }
 
 /**
  * Phones: the price and your dates stay pinned at the bottom. Tapping them opens a bottom sheet where the stay type, dates,
  * guests and rate type are changed (the same URL the room list reads), and "See rooms" jumps to the rooms.
  */
-export function StayBookingBar({ params, today, offered, fromRate, soldOut, sessionHours }: Props) {
+export function StayBookingBar({ params, today, offered, fromRate, soldOut, sessionHours, reserveHref }: Props) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -69,7 +72,9 @@ export function StayBookingBar({ params, today, offered, fromRate, soldOut, sess
           {price}
           <span className="type-body-sm block truncate text-text-secondary underline underline-offset-4">{range} · {who}</span>
         </button>
-        <a href="#rooms" className="type-label inline-flex min-h-11 shrink-0 items-center rounded-control bg-action-primary px-5 text-text-on-action">{t("booking.seeRooms")}</a>
+        {reserveHref
+          ? <LocalLink href={reserveHref} className="type-label inline-flex min-h-11 shrink-0 items-center rounded-control bg-action-cta px-5 text-text-on-action">{t("booking.reserve")}</LocalLink>
+          : <a href="#rooms" className="type-label inline-flex min-h-11 shrink-0 items-center rounded-control bg-action-cta px-5 text-text-on-action">{t("booking.seeRooms")}</a>}
       </div>
 
       <dialog
@@ -124,7 +129,9 @@ export function StayBookingBar({ params, today, offered, fromRate, soldOut, sess
                   {error ? <p role="alert" className="type-body-sm text-error-text">{error}</p> : null}
                 </div>
                 <div className="border-t border-border-subtle px-5 py-3">
-                  <Button size="lg" fullWidth onClick={() => { setOpen(false); setTimeout(() => document.getElementById("rooms")?.scrollIntoView({ behavior: "smooth" }), 50); }}>{t("booking.seeRooms")}</Button>
+                  {reserveHref
+                    ? <LocalLink href={reserveHref} className="type-label inline-flex min-h-12 w-full items-center justify-center rounded-full bg-action-cta px-6 text-text-on-action">{t("booking.reserve")}</LocalLink>
+                    : <Button size="lg" fullWidth onClick={() => { setOpen(false); setTimeout(() => document.getElementById("rooms")?.scrollIntoView({ behavior: "smooth" }), 50); }}>{t("booking.seeRooms")}</Button>}
                   <p className="type-body-sm mt-2 text-center text-text-secondary">{t("booking.nothingChargedYet")}</p>
                 </div>
               </>

@@ -52,10 +52,10 @@ export function StayMap({ pins, selectedId, hoverId, onSelect, onBoundsChange, v
   const iconFor = (L: typeof import("leaflet"), p: MapPin, active: boolean) =>
     L.divIcon({
       className: "",
-      iconSize: single ? [56, 56] : mini ? [14, 14] : undefined,
-      iconAnchor: single ? [28, 28] : mini ? [7, 7] : [0, 0],
+      iconSize: mini ? [14, 14] : single ? [0, 0] : undefined,
+      iconAnchor: mini ? [7, 7] : [0, 0],
       html: single
-        ? `<span aria-hidden="true" class="flex size-14 items-center justify-center rounded-full bg-action-primary text-text-on-action shadow-raised ring-4 ring-white"><svg viewBox="0 0 24 24" class="size-7" fill="currentColor"><path d="M12 3 2.5 11.5h2.8V20h5v-5.5h3.4V20h5v-8.5h2.8z"/></svg></span>`
+        ? `<div aria-hidden="true" class="flex -translate-x-1/2 -translate-y-full flex-col items-center"><span class="mb-1.5 max-w-[15rem] truncate whitespace-nowrap rounded-full bg-surface-raised px-4 py-2 type-label shadow-raised">${esc(p.name)}</span><svg viewBox="0 0 40 52" class="h-12 w-10 text-action-primary drop-shadow-[0_3px_4px_#00000040]"><path d="M20 1C9.500 1 1 9.500 1 20c0 13 19 31 19 31s19-18 19-31C39 9.500 30.500 1 20 1Z" fill="currentColor" stroke="#fff" stroke-width="2"/><circle cx="20" cy="20" r="11" fill="#fff"/><path d="M20 12.500 12.500 19h2.200v7h4v-4.500h2.600V26h4v-7h2.200z" fill="currentColor"/></svg></div>`
         : mini
         ? `<span aria-hidden="true" class="block size-3.5 rounded-full border-2 border-white bg-action-primary shadow-raised"></span>`
         : `<button type="button" aria-label="${esc(p.name)}, ${esc(p.label)}" class="-translate-x-1/2 -translate-y-full whitespace-nowrap rounded-control border px-2 py-1 type-label shadow-raised transition-colors duration-150 ${
@@ -179,7 +179,7 @@ export function StayMap({ pins, selectedId, hoverId, onSelect, onBoundsChange, v
       } else if (pins.length) {
         m.invalidateSize(); // measure first, then frame the pins
         fitted.current = Date.now();
-        m.fitBounds(L.latLngBounds(pins.map((p) => [p.lat, p.lng] as [number, number])).pad(0.25), { maxZoom: 13, animate: false });
+        m.fitBounds(L.latLngBounds(pins.map((p) => [p.lat, p.lng] as [number, number])).pad(0.25), { maxZoom: 13, animate: false, paddingTopLeft: [window.innerWidth >= 1024 && m.getSize().x === window.innerWidth ? 448 : 0, 0] });
       }
       renderRef.current();
       m.off("zoomend", onZoom).on("zoomend", onZoom);

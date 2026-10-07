@@ -13,7 +13,7 @@ export default async function ApplyPage({ params }: { params: Promise<{ locale: 
   const t = createT(locale);
   return (
     <Container size="narrow" className="py-8">
-      <PageHeader back="/partners" title={t("partner.title")} description={t("partner.desc")} />
+      <PageHeader crumbs={[{ href: "/partners", label: t("partners.title") }]} title={t("partner.title")} description={t("partner.desc")} />
       <PartnerApplicationForm />
     </Container>
   );

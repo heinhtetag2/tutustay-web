@@ -47,13 +47,13 @@ export function HeroCarousel({ slides, children }: { slides: HeroSlide[]; childr
               key={s.src} aria-hidden={k !== i} role="group" aria-roledescription="slide"
               className={`col-start-1 row-start-1 transition-[opacity,transform,filter] duration-700 ease-out ${k === i ? "translate-y-0 opacity-100 blur-0 delay-300" : "pointer-events-none translate-y-4 opacity-0 blur-sm"}`}
             >
-              <h1 className={`type-display text-[#fff] [text-shadow:0_2px_16px_#00000066] ${k === 0 ? "" : "[&]:font-semibold"}`}>{k === 0 ? s.title : <span role="presentation">{s.title}</span>}</h1>
-              <p className="type-body mx-auto mt-4 max-w-2xl text-[#ffffffe6] [text-shadow:0_1px_10px_#000000b3]">{s.subtitle}</p>
+              <h1 className={`type-display !text-[36px] !leading-[1.1] sm:!text-[50px] lg:!text-[58px] text-[#fff] [text-shadow:0_2px_16px_#00000066] ${k === 0 ? "" : "[&]:font-semibold"}`}>{k === 0 ? s.title : <span role="presentation">{s.title}</span>}</h1>
+              <p className="type-body !text-[17px] !leading-snug sm:!text-[19px] lg:!text-[21px] mx-auto mt-5 max-w-3xl text-[#ffffffe6] [text-shadow:0_1px_10px_#000000b3]">{s.subtitle}</p>
             </div>
           ))}
         </div>
 
-        <div className="anim-rise mx-auto mt-10 max-w-5xl text-left" style={{ "--i": 3 } as React.CSSProperties}>{children}</div>
+        <div className="anim-rise mx-auto mt-10 max-w-6xl text-left" style={{ "--i": 3 } as React.CSSProperties}>{children}</div>
 
         {slides.length > 1 ? (
           <div className="mt-6 flex justify-center gap-2" role="group" aria-label="Banner">

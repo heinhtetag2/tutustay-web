@@ -110,14 +110,16 @@ export function listStayIds(): string[] {
   return STAYS.map((s) => s.id);
 }
 
-export function listPlaces(): { name: string; count: number; fromRate: number | null }[] {
-  const byCity = new Map<string, { count: number; from: number | null }>();
+export function listPlaces(): { name: string; count: number; fromRate: number | null; coverStayId: string }[] {
+  const byCity = new Map<string, { count: number; from: number | null; cover: Stay }>();
   for (const s of STAYS) {
     const rate = lowestRate(s.rooms, "overnight", "local");
-    const cur = byCity.get(s.place.city) ?? { count: 0, from: null };
-    byCity.set(s.place.city, { count: cur.count + 1, from: rate === null ? cur.from : cur.from === null ? rate : Math.min(cur.from, rate) });
+    const cur = byCity.get(s.place.city) ?? { count: 0, from: null, cover: s };
+    // The city's photo comes from its best-rated stay.
+    const cover = (s.rating?.score ?? 0) > (cur.cover.rating?.score ?? 0) ? s : cur.cover;
+    byCity.set(s.place.city, { count: cur.count + 1, cover, from: rate === null ? cur.from : cur.from === null ? rate : Math.min(cur.from, rate) });
   }
-  return [...byCity].map(([name, v]) => ({ name, count: v.count, fromRate: v.from }));
+  return [...byCity].map(([name, v]) => ({ name, count: v.count, fromRate: v.from, coverStayId: v.cover.id }));
 }
 
 export async function listFeatured(limit = 6): Promise<Stay[]> {

@@ -23,6 +23,10 @@ interface Props {
   mapQuery: string;
   /** The search bar, pinned under the header while the list scrolls. */
   searchBar: React.ReactNode;
+  /** Always-visible filters shown in the floating panel on wide screens (small screens use `controls`). */
+  inlineFilters?: React.ReactNode;
+  /** Wide screens: the floating "Show list" pill over the map (a ViewToggle with its own position classes). */
+  viewToggle?: React.ReactNode;
   notice?: React.ReactNode;
   className?: string;
 }
@@ -31,7 +35,7 @@ interface Props {
  * Results beside a sticky map (the Plum Guide pattern): a horizontal list on the left, price pins on the right.
  * Hovering a card highlights its pin and the other way round. Small screens show the list with a "Map" button.
  */
-export function SearchSplit({ items, query, stayType, foreigner, title, controls, empty, mapQuery, searchBar, notice, className }: Props) {
+export function SearchSplit({ items, query, stayType, foreigner, title, controls, empty, mapQuery, searchBar, inlineFilters, viewToggle, notice, className }: Props) {
   const t = useT();
   const locale = useLocale();
   const [selected, setSelected] = useState<string | null>(null);
@@ -57,15 +61,15 @@ export function SearchSplit({ items, query, stayType, foreigner, title, controls
       <div>{searchBar}</div>
       {notice}
     </div>
-    <div className="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-      <section aria-label={t("search.results")} className="min-w-0 px-4 pb-24 sm:px-6 md:px-8 no-scrollbar lg:min-h-0 lg:overflow-y-auto lg:pb-8">
+    <div className="grid lg:relative lg:min-h-0 lg:flex-1">
+      <section aria-label={t("search.results")} className="min-w-0 px-4 pb-24 sm:px-6 md:px-8 no-scrollbar lg:absolute lg:bottom-4 lg:left-4 lg:top-4 lg:z-10 lg:w-[27rem] lg:overflow-y-auto lg:rounded-card lg:bg-surface-raised lg:px-5 lg:pb-4 lg:shadow-[0_8px_32px_#00000040]">
         <div className="mb-2 flex flex-col gap-4 py-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <h1 className="type-subheading">{title}</h1>
             <p className="type-body-sm mt-1 text-text-secondary">{t("search.trust")}</p>
             <LocalLink href="/about" className="type-label mt-1 inline-block text-text-link underline underline-offset-4">{t("search.trustLink")}</LocalLink>
           </div>
-          <div className="order-first flex flex-wrap items-center gap-3 sm:order-none sm:shrink-0 sm:justify-end">{controls}</div>
+          <div className={`order-first flex flex-wrap items-center gap-3 sm:order-none sm:shrink-0 sm:justify-end ${inlineFilters ? "lg:hidden" : ""}`}>{controls}</div>
         </div>
         {items.length === 0 ? (
           <EmptyState title={empty.title} body={empty.body} action={empty.action} />
@@ -81,14 +85,18 @@ export function SearchSplit({ items, query, stayType, foreigner, title, controls
         )}
       </section>
 
-      <div className="relative hidden min-h-0 lg:block">
-        <div className="isolate size-full overflow-hidden border-l border-border-subtle">
+      <div className="hidden lg:absolute lg:inset-0 lg:block">
+        <div className="isolate size-full overflow-hidden">
           <StayMap
             pins={pins} selectedId={selected} hoverId={hover} onSelect={select}
             ariaLabel={t("map.alt", { n: items.length })} openLabel={t("map.openStay")} failedLabel={t("map.tilesFailed")} clusterLabel={t("map.clusterWord")} zoomHint={t("map.zoomHint")} className="size-full"
           />
         </div>
       </div>
+
+      {viewToggle}
+
+      {inlineFilters ? <div className="hidden lg:absolute lg:left-[28.5rem] lg:right-4 lg:top-4 lg:z-10 lg:block">{inlineFilters}</div> : null}
 
       <LocalLink
         href={`/search?${mapQuery}`}

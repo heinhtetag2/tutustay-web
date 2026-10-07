@@ -53,7 +53,7 @@ export function clearMockBookings(): void {
  * DEMO: puts the sample bookings next to any real mock bookings, so every tab has something to show.
  * Versioned: when the sample set changes, the old samples are swapped for the new ones (your own bookings are never touched).
  */
-const DEMO_VERSION = "2";
+const DEMO_VERSION = "4";
 export function seedDemoBookings(): void {
   const flag = "tutustay.mock.demoBookingsSeeded";
   try {

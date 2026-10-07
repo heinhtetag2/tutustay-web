@@ -78,18 +78,17 @@ export function DealsView({ coupons: base, initialTab = "all" }: { coupons: Coup
             return (
               <li
                 key={c.code}
-                style={{ backgroundImage: "url(/coupon/coupon-bg.webp)", backgroundColor: "#a8e3f1" }}
-                className={`relative flex flex-col gap-3 overflow-hidden rounded-card border border-border-subtle bg-[length:100%_auto] bg-right-bottom bg-no-repeat pl-5 pr-5 pt-5 pb-[calc(42%+1.25rem)] sm:bg-cover sm:bg-right sm:py-5 sm:pr-[38%] ${expired(c) ? "grayscale" : ""}`}
+                className={`relative flex h-full flex-col items-start gap-3 rounded-card border border-[#cfe6f1] bg-[#eaf5fa] p-5 ${expired(c) ? "grayscale" : ""}`}
               >
-                {isClaimed ? <Badge tone="success" className="absolute right-3 top-3 shadow-card">{t("deals.claimed")}</Badge> : null}
-                <h2 className="type-heading text-text-primary">{c.title}</h2>
+                {isClaimed ? <Badge tone="success" className="absolute right-3 top-3">{t("deals.claimed")}</Badge> : null}
+                <h2 className="type-heading pr-20 text-text-primary">{c.title}</h2>
                 <p className="type-body-sm text-text-primary">
                   {c.minSpend ? t("deals.minSpend", { amount: formatKs(c.minSpend) }) : t("deals.noMin")}
                   {c.maxDiscount ? ` · ${t("deals.maxDiscount", { amount: formatKs(c.maxDiscount) })}` : ""} · {t("deals.expires", { date: c.expires })}
                 </p>
                 <p className="type-price-sm">{c.code}</p>
                 <Button
-                  variant="secondary" className="self-start" disabled={expired(c) || isClaimed}
+                  variant="secondary" className="mt-auto" disabled={expired(c) || isClaimed}
                   onClick={() => claimedCouponsStore.set([...claimed, c.code])}
                 >
                   {expired(c) ? t("deals.expired") : isClaimed ? t("deals.claimed") : t("deals.claim")}

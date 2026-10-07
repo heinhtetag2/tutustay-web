@@ -83,14 +83,14 @@ export function SettingsPanel() {
         {!confirming ? (
           <>
             <p className="type-body-sm mt-1 text-text-secondary">{t("account.delete.body", { days: DELETION_GRACE_DAYS })}</p>
-            <Button variant="secondary" className="mt-3" onClick={() => setConfirming(true)}>{t("account.delete.start")}</Button>
+            <Button variant="secondary" className="mt-3 border-error-text text-error-text hover:bg-error-bg" onClick={() => setConfirming(true)}>{t("account.delete.start")}</Button>
           </>
         ) : (
           <div role="alertdialog" aria-labelledby="del-q" className="mt-3 flex flex-col gap-3">
             <p id="del-q" className="type-body">{t("account.delete.confirmQ")}</p>
             <StatusBanner tone="warning">{t("account.delete.consequence", { days: DELETION_GRACE_DAYS })}</StatusBanner>
             <div className="flex flex-wrap gap-3">
-              <Button onClick={() => { requestDeletion(); router.push(`/${locale}/login`); }}>{t("account.delete.confirm")}</Button>
+              <Button className="bg-error-text text-surface-raised hover:bg-error-text hover:opacity-90 active:bg-error-text" onClick={() => { requestDeletion(); router.push(`/${locale}/login`); }}>{t("account.delete.confirm")}</Button>
               <Button variant="secondary" onClick={() => setConfirming(false)}>{t("account.delete.keep")}</Button>
             </div>
           </div>

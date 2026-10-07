@@ -1,8 +1,9 @@
-import type { CSSProperties } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { formatKs, todayIso, type PropertyCategory } from "@/domain";
+import { distanceKm, formatKs, todayIso, type PropertyCategory } from "@/domain";
+import { AppSection, PartnerSection } from "@/features/home/AppAndPartnerSections";
 import { HeroCarousel } from "@/features/home/HeroCarousel";
-import { TileIcon } from "@/features/home/TileIcon";
+import { HowItWorks } from "@/features/home/HowItWorks";
 import { TrustPoints } from "@/features/home/TrustPoints";
 import { ResultCard } from "@/features/search/ResultCard";
 import { stayCover } from "@/features/stay-detail/photos";
@@ -14,10 +15,13 @@ import { listPlaces, searchStays } from "@/services/stays.service";
 import { LocalLink } from "@/shared/components/LocalLink";
 import { Container, Section } from "@/shared/layout/Container";
 import { LinkButton } from "@/shared/ui/Button";
+import { CategoryIcon3D } from "@/shared/ui/CategoryIcon3D";
 import { PhotoTile } from "@/shared/ui/PhotoTile";
 import { parseSearchParams, toQueryString } from "@/validation/search";
 
+const DEMO_LOCATION = { lat: 16.8, lng: 96.15 };
 const CATEGORIES: PropertyCategory[] = ["hotel", "motel", "resort", "campsite"];
+/** One photo per property type that looks like the type (hotel lobby, inn entrance, resort pool, tent), rather than the first stay's cover. */
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -27,6 +31,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { params: p } = parseSearchParams({}, today);
   const { items } = await searchStays({ ...p, sort: "rating" });
   const featured = items.filter((i) => i.available).slice(0, 4);
+  // DEMO: shown with a fixed Yangon point until the guest taps "Stay near you" (we never read their location unprompted).
+  const nearby = items
+    .filter((i) => i.available)
+    .map((i) => ({ ...i, distanceKm: distanceKm(DEMO_LOCATION, i.stay.coords) }))
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, 4);
+  const appCovers = items.filter((i) => i.available).slice(0, 4).map((i) => ({ name: i.stay.name, place: [i.stay.place.township, i.stay.place.city].filter(Boolean).join(", "), price: i.fromRate !== null ? formatKs(i.fromRate) : "", src: stayCover(i.stay.id) }));
+  const rated = items.filter((i) => i.stay.rating);
+  const avgScore = rated.length ? rated.reduce((a, i) => a + (i.stay.rating?.score ?? 0), 0) / rated.length : 0;
   const carry = toQueryString({ checkIn: p.checkIn, checkOut: p.checkOut });
   const places = listPlaces();
 
@@ -50,23 +63,21 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       <Container size="wide">
         <Section>
-          <h2 className="type-heading mb-6">{t("home.byType")}</h2>
-          <ul className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4 lg:gap-x-6">
+          <div className="mb-6"><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.byType")}</h2></div>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
             {CATEGORIES.map((c, i) => {
               const group = items.filter((x) => x.stay.category === c);
               if (group.length === 0) return null;
               const from = Math.min(...group.map((x) => x.fromRate ?? Infinity));
               return (
                 <li key={c} className="anim-rise" style={{ "--i": i } as CSSProperties}>
-                  <LocalLink href={`/search?category=${c}`} className="group block">
-                    <div className="relative aspect-[4/3] overflow-hidden rounded-card">
-                      <PhotoTile src={stayCover(group[0]!.stay.id)} alt="" className="absolute inset-0 size-full transition-transform duration-300 group-hover:scale-[1.04]" />
-                    </div>
-                    <h3 className="type-subheading mt-3">{t(`category.${c}`)}</h3>
-                    <p className="type-body-sm text-text-secondary">
-                      {t(group.length === 1 ? "search.countOne" : "search.count", { n: group.length })}
-                      {Number.isFinite(from) ? ` · ${t("home.fromNight", { price: formatKs(from) })}` : ""}
-                    </p>
+                  <LocalLink href={`/search?category=${c}`} className="group flex items-center gap-4 rounded-card border border-border-subtle bg-surface-raised p-4 transition-colors hover:border-text-primary hover:bg-surface-subtle">
+                    <CategoryIcon3D name={c} className="size-14 shrink-0 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105" />
+                    <span className="min-w-0">
+                      <span className="type-subheading block">{t(`category.${c}`)}</span>
+                      <span className="type-body-sm block text-text-secondary">{t(group.length === 1 ? "search.countOne" : "search.count", { n: group.length })}</span>
+                      {Number.isFinite(from) ? <span className="type-body-sm block whitespace-nowrap text-text-secondary">{t("home.fromNight", { price: formatKs(from) })}</span> : null}
+                    </span>
                   </LocalLink>
                 </li>
               );
@@ -75,44 +86,116 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </Section>
 
         <Section>
-          <h2 className="type-heading mb-4">{t("home.places")}</h2>
-          <ul className="flex flex-wrap gap-3">
-            {places.map((x) => (
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <div><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.places")}</h2></div>
+            <LocalLink href="/destinations" className="type-label inline-flex min-h-11 shrink-0 items-center text-text-link hover:underline">{t("home.allPlaces")} →</LocalLink>
+          </div>
+          <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {places.slice(0, 5).map((x) => (
               <li key={x.name}>
-                <LocalLink href={`/search?place=${encodeURIComponent(x.name)}`} className="type-label inline-flex min-h-11 items-center rounded-field border border-border-subtle bg-surface-raised px-4 hover:bg-surface-subtle">
-                  {dataLabel(locale, x.name)} <span className="ml-2 font-normal text-text-secondary">{x.fromRate !== null ? `${t("home.fromNight", { price: formatKs(x.fromRate) })} · ` : ""}{t(x.count === 1 ? "search.countOne" : "search.count", { n: x.count })}</span>
+                <LocalLink href={`/search?place=${encodeURIComponent(x.name)}`} className="group relative block aspect-[3/4] overflow-hidden rounded-card bg-surface-subtle shadow-[0_2px_12px_#0000001a] transition-shadow hover:shadow-[0_8px_24px_#00000033]">
+                  <PhotoTile src={stayCover(x.coverStayId)} alt="" className="absolute inset-0 size-full transition-transform duration-500 group-hover:scale-105" />
+                  <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#000000cc] via-[#00000033] to-transparent" />
+                  <span className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-4 text-[#fff]">
+                    <span className="type-heading">{dataLabel(locale, x.name)}</span>
+                    <span className="type-body-sm">{t(x.count === 1 ? "search.countOne" : "search.count", { n: x.count })}</span>
+                    {x.fromRate !== null ? <span className="type-body-sm opacity-90">{t("home.fromNight", { price: formatKs(x.fromRate) })}</span> : null}
+                  </span>
                 </LocalLink>
               </li>
             ))}
-            <li><LocalLink href="/destinations" className="type-label inline-flex min-h-11 items-center px-2 text-text-link">{t("home.allPlaces")}</LocalLink></li>
           </ul>
         </Section>
 
         <Section>
-          <h2 className="type-heading mb-4">{t("home.featured")}</h2>
+          <div className="mb-4"><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.featured")}</h2></div>
           <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {featured.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={carry} stayType="overnight" foreigner={false} layout="card" />)}
           </ul>
         </Section>
 
-        <Section><h2 className="type-heading mb-4">{t("home.trust")}</h2><TrustPoints locale={locale} /></Section>
+        {nearby.length > 0 ? (
+          <Section>
+            <div className="mb-4">
+              <div>
+                <span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" />
+                <h2 className="type-heading">{t("home.nearby.title")}</h2>
+                <p className="type-body-sm mt-1 text-text-secondary">{t("home.nearby.body")}</p>
+              </div>
+            </div>
+            <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {nearby.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={carry} stayType="overnight" foreigner={false} layout="card" />)}
+            </ul>
+          </Section>
+        ) : null}
 
         <Section>
-          <h2 className="type-heading mb-4">{t("home.explore")}</h2>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {([["/account/promo-codes?tab=all", "home.tile.claim", "claim"], ["/account/promo-codes", "home.tile.mine", "mine"], ["/download", "home.tile.app", "app"], ["/search?sort=price-asc", "home.tile.lowest", "lowest"], ["/search", "home.tile.browse", "browse"]] as const).map(([href, key, icon]) => (
-              <li key={key}><LocalLink href={href} className="flex h-full flex-col gap-1 rounded-card border border-border-subtle bg-surface-raised p-4 shadow-card hover:shadow-raised"><TileIcon name={icon} /><span className="type-subheading">{t(`${key}.title`)}</span><span className="type-body-sm text-text-secondary">{t(`${key}.body`)}</span></LocalLink></li>
+          <ul className="grid gap-4 md:grid-cols-2">
+            {([
+              ["/hero/ngapali-beach.jpg", "center 55%", "home.banner.beach", "/search?place=Thandwe"],
+              ["/hero/inle-fisherman.jpg", "center 45%", "home.banner.pay", "/search?bookable=true"],
+            ] as const).map(([img, pos, key, href]) => (
+              <li key={key}>
+                <LocalLink href={href} className="group relative flex min-h-56 items-end overflow-hidden rounded-card text-[#fff]">
+                  <PhotoTile src={img} alt="" className="absolute inset-0 size-full transition-transform duration-500 group-hover:scale-105" />
+                  <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#000000b3] via-[#00000066] to-transparent" />
+                  <span className="relative flex max-w-sm flex-col items-start gap-2 p-6">
+                    <span className="type-caption rounded-full bg-[#ffffff33] px-2.5 py-0.5 backdrop-blur-sm">{t("home.ad")}</span>
+                    <span className="type-heading">{t(`${key}.title`)}</span>
+                    <span className="type-body-sm opacity-90">{t(`${key}.body`)}</span>
+                    <span className="type-label mt-1 inline-flex min-h-10 items-center rounded-full bg-[#fff] px-4 text-text-primary">{t(`${key}.cta`)}</span>
+                  </span>
+                </LocalLink>
+              </li>
             ))}
           </ul>
         </Section>
 
         <Section>
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-card bg-promo-bg p-6">
-            <div><h2 className="type-subheading text-promo-text">{t("home.dealsTitle")}</h2><p className="type-body-sm mt-1">{t("home.dealsBody")}</p></div>
-            <LinkButton href="/account/promo-codes?tab=all" variant="secondary">{t("nav.deals")}</LinkButton>
+          <div className="rounded-card bg-surface-brand-subtle p-6 md:p-10">
+            <h2 className="type-heading mb-6">{t("home.how")}</h2>
+            <HowItWorks locale={locale} flat />
+            <hr className="my-8 border-border-subtle" />
+            <h2 className="sr-only">{t("home.trust")}</h2>
+            <TrustPoints locale={locale} flat />
           </div>
         </Section>
+
+        <Section>
+          <ul className="grid gap-4 md:grid-cols-2">
+            <li>
+              <LocalLink href="/account/promo-codes?tab=all" className="group relative flex min-h-48 items-end overflow-hidden rounded-card bg-cover bg-center" style={{ backgroundImage: "url(/coupon/coupon-bg.webp)", backgroundColor: "#a8e3f1" }}>
+                <span className="m-4 flex max-w-sm flex-col items-start gap-2 rounded-card bg-[#ffffffe6] p-4 backdrop-blur-sm">
+                  <span className="type-heading text-promo-text">{t("home.tile.claim.title")}</span>
+                  <span className="type-body-sm">{t("home.tile.claim.body")}</span>
+                  <span className="type-label mt-1 inline-flex min-h-10 items-center rounded-full bg-[#fff] px-4 text-text-primary">{t("nav.deals")}</span>
+                </span>
+              </LocalLink>
+            </li>
+          </ul>
+        </Section>
+
+        <Section>
+          <div className="rounded-card bg-surface-subtle p-6 md:p-10">
+          <div className="mb-4"><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.faq")}</h2></div>
+          <div className="grid gap-3 lg:grid-cols-2">
+            {([1, 2, 3, 4] as const).map((n) => (
+              <details key={n} className="group rounded-card border border-border-subtle bg-surface-raised">
+                <summary className="type-label flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 [&::-webkit-details-marker]:hidden">
+                  {t(`home.faq.${n}.q`)}
+                  <svg aria-hidden viewBox="0 0 24 24" className="size-4 shrink-0 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                </summary>
+                <p className="type-body-sm px-5 pb-4 text-text-secondary">{t(`home.faq.${n}.a`)}</p>
+              </details>
+            ))}
+          </div>
+          <LocalLink href="/help" className="type-label mt-4 inline-flex min-h-11 items-center text-text-link">{t("home.faq.moreHelp")} →</LocalLink>
+          </div>
+        </Section>
+
+        <AppSection locale={locale} covers={appCovers} />
       </Container>
+      <PartnerSection locale={locale} cover={appCovers[3]} score={avgScore} stays={items.length} />
     </>
   );
 }

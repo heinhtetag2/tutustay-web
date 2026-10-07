@@ -28,7 +28,7 @@ export function StayPolicies({ stay, locale }: { stay: Stay; locale: Locale }) {
   const col = "flex flex-col gap-1";
   const dt = "type-label";
   return (
-    <Section divided id="policies">
+    <Section divided id="policies" className="pt-6 pb-6 md:pt-8 md:pb-8">
       <h2 className="type-heading mb-6">{t("stay.policies")}</h2>
       <div className="grid gap-8 md:grid-cols-3">
         <dl className={col}>

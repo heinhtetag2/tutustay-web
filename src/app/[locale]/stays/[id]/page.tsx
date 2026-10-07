@@ -51,6 +51,7 @@ export default async function StayPage({ params, searchParams }: Props) {
     stayType: p.stayType, sessionHours: p.sessionHours, foreigner: p.foreigner,
   });
   const nextStart = allSoldOut ? await findNextAvailableStart(id, p) : null;
+  const reserveHref = `/stays/${id}/rooms${query ? `?${query}` : ""}`;
   const back = toQueryString({ ...p, place: p.place });
 
   return (
@@ -77,7 +78,9 @@ export default async function StayPage({ params, searchParams }: Props) {
       <div className="mt-4"><PhotoGallery stayId={stay.id} name={stay.name} rooms={stay.rooms.map((r) => ({ id: r.id, name: r.name }))} /></div>
 
       <div className="mt-4">
-        <p className="type-heading">{t(`category.${stay.category}`)} · {[stay.place.township, stay.place.city].filter(Boolean).join(", ")}</p>
+        <p className="type-heading">
+          <span>{[stay.place.township, stay.place.city].filter(Boolean).join(", ")} <span className="font-normal text-text-secondary">· {t(`category.${stay.category}`)}</span></span>
+        </p>
         <p className="type-body-sm mt-1 flex items-center gap-1.5 text-text-secondary">
           {stay.rating ? (
             <>
@@ -92,25 +95,6 @@ export default async function StayPage({ params, searchParams }: Props) {
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div>
-          <Section id="rooms" className="pt-2">
-            <h2 className="type-heading mb-4">{t("stay.rooms")}</h2>
-            {allSoldOut ? (
-              <StatusBanner tone="warning" title={t("stay.soldOut")} className="mb-4">
-                {nextStart ? (
-                  <>
-                    {t("stay.nextAvailable", { date: formatDate(nextStart, false, locale) })}{" "}
-                    <LocalLink className="text-text-link underline" href={`/stays/${id}?${toQueryString({ ...p, checkIn: nextStart, checkOut: addDays(nextStart, nights) })}`}>{t("stay.useDates")}</LocalLink>
-                  </>
-                ) : t("stay.noDates")}
-              </StatusBanner>
-            ) : null}
-            {typeMissing ? <StatusBanner tone="info" className="mb-4">{t("stay.typeNotOffered", { type: t(`stayType.${p.stayType}`) })}</StatusBanner> : null}
-            <ul className="flex flex-col gap-4">
-              {rooms.map((r) => (
-                <RoomCard key={r.id} room={r} locale={locale} stayId={id} checkIn={p.checkIn} checkOut={p.checkOut} rooms={p.rooms} stayType={p.stayType} guestType={guestType} query={query} payment={stay.payment} />
-              ))}
-            </ul>
-          </Section>
           {FEATURES.showPhoneBeforeBooking ? (
             <section aria-labelledby="ask" className="mt-4 rounded-card border border-border-subtle bg-surface-raised p-5">
               <h2 id="ask" className="type-subheading">{t("stay.ask")}</h2>
@@ -119,18 +103,18 @@ export default async function StayPage({ params, searchParams }: Props) {
             </section>
           ) : null}
           <StaySections stay={stay} locale={locale} />
+          <StayReviews stay={stay} />
+          <StayLocation stay={stay} locale={locale} />
+          <StayPolicies stay={stay} locale={locale} />
         </div>
 
-        <BookingCard params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} />
+        <BookingCard params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} reserveHref={reserveHref} />
       </div>
 
-      <StayReviews stay={stay} />
-      <StayLocation stay={stay} locale={locale} />
-      <StayPolicies stay={stay} locale={locale} />
       <NearbyStays stay={stay} locale={locale} params={p} query={query} />
 
       {/* Phones: price and dates pinned at the bottom, tap for the booking sheet. */}
-      <StayBookingBar params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} />
+      <StayBookingBar params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} reserveHref={reserveHref} />
     </Container>
   );
 }

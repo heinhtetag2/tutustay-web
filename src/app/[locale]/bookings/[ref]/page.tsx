@@ -14,7 +14,7 @@ export default async function BookingPage({ params }: { params: Promise<{ locale
   const t = createT(locale);
   return (
     <Container className="py-8">
-      <PageHeader back="/account/bookings" title={t("status.pageTitle")} description={ref} />
+      <PageHeader crumbs={[{ href: "/account/bookings", label: t("nav.myBookings") }]} title={t("status.pageTitle")} description={ref} />
       <AuthGate reason="account"><BookingStatusLoader bookingRef={ref} /></AuthGate>
     </Container>
   );

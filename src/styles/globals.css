@@ -24,6 +24,8 @@
   --color-action-primary: var(--action-primary);
   --color-action-primary-hover: var(--action-primary-hover);
   --color-action-primary-pressed: var(--action-primary-pressed);
+  --color-action-cta: var(--action-cta);
+  --color-action-cta-hover: var(--action-cta-hover);
   --color-border-subtle: var(--border-subtle);
   --color-border-control: var(--border-control);
   --color-border-focus: var(--border-focus);

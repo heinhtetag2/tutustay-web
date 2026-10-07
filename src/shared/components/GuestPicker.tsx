@@ -17,6 +17,16 @@ export function GuestPicker({ value, onChange, showRooms = true, showForeigner =
   const root = useRef<HTMLDetailsElement>(null);
 
   // A native <details> stays open until toggled again: close it on any click or focus outside, and on Escape.
+  // Toggle on mouse-down, not on click: the search bar widens as soon as the field is pressed, so by mouse-up the field has moved and the click would be lost.
+  const downHandled = useRef(false);
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse" || e.button !== 0 || !root.current) return;
+    e.preventDefault();
+    downHandled.current = true;
+    root.current.open = !root.current.open;
+  };
+  const onClick = (e: React.MouseEvent) => { if (downHandled.current) { e.preventDefault(); downHandled.current = false; } };
+
   useEffect(() => {
     const close = () => { if (root.current) root.current.open = false; };
     const outside = (e: Event) => { if (root.current?.open && !root.current.contains(e.target as Node)) close(); };
@@ -31,9 +41,11 @@ export function GuestPicker({ value, onChange, showRooms = true, showForeigner =
 
   return (
     <details ref={root} className="relative">
-      <summary className="type-body flex min-h-11 cursor-pointer list-none items-center rounded-field border border-border-control bg-surface-raised px-3">
-        {summary}
-        {value.foreigner ? <span className="type-body-sm ml-2 text-text-secondary">· {t("guests.foreignerShort")}</span> : null}
+      <summary onPointerDown={onPointerDown} onClick={onClick} className="type-body flex min-h-11 cursor-pointer list-none items-center rounded-field border border-border-control bg-surface-raised px-3">
+        <span className="min-w-0 truncate">
+          {summary}
+          {value.foreigner ? <span className="type-body-sm ml-2 text-text-secondary">· {t("guests.foreignerShort")}</span> : null}
+        </span>
       </summary>
       <div className="pop z-20 mt-2 flex w-full min-w-72 flex-col gap-4 rounded-card border border-border-subtle bg-surface-raised p-4 shadow-high lg:absolute lg:w-80">
         <Stepper label={t("guests.adults")} value={value.adults} min={LIMITS.adults.min} max={LIMITS.adults.max} onChange={(adults) => onChange({ ...value, adults })} />

@@ -19,6 +19,8 @@ export interface Stay {
   place: { region: string; city: string; township?: string };
   coords: LatLng;
   summary: string;
+  /** Longer description for the About section, one string per paragraph. Falls back to `summary`. */
+  about?: string[];
   rating: { score: number; count: number } | null;
   facilities: string[];
   popular: boolean;

@@ -18,31 +18,20 @@ export function HowYoullPay({ mode, price }: { mode: PaymentMode; price: PriceBr
         { title: t("how.answer.title", { n: MOCK_RESPONSE_WINDOW_MINUTES }), body: t("how.answer.body") },
         { title: t("how.hotel.title"), body: t("how.hotel.body", { amount: formatKs(price.payAtProperty) }) },
       ];
-  const last = steps.length - 1;
   return (
     <section aria-labelledby="how" className="flex flex-col gap-4">
       <h2 id="how" className="type-heading">{t("how.title")}</h2>
-      <div className="overflow-hidden rounded-card border border-border-subtle bg-surface-raised">
-        <div className="grid grid-cols-2 divide-x divide-border-subtle">
-          <div className={`p-4 ${online ? "bg-surface-brand-subtle" : ""}`}>
-            <p className="type-label text-text-secondary">{t(online ? "how.depositLabel" : "price.payNow")}</p>
-            <p className="type-price-md mt-1 text-text-brand">{formatKs(price.payNow)}</p>
-          </div>
-          <div className={`p-4 ${online ? "" : "bg-surface-brand-subtle"}`}>
-            <p className="type-label text-text-secondary">{t("price.payAtProperty")}</p>
-            <p className="type-price-md mt-1">{formatKs(price.payAtProperty)}</p>
-          </div>
-        </div>
-      </div>
-      <ol className="flex flex-col">
+      {/* A plain numbered list: the amounts are already in the price summary, so no chart or split here. */}
+      <ol className="divide-y divide-border-subtle rounded-card border border-border-subtle bg-surface-raised px-5">
         {steps.map((s, i) => (
-          <li key={s.title} className="relative flex gap-4 pb-6 last:pb-0">
-            {i < last ? <span aria-hidden className="absolute left-5 top-11 bottom-1 w-px bg-border-subtle" /> : null}
-            <span aria-hidden className={`type-label z-10 flex size-10 shrink-0 items-center justify-center rounded-full border-2 ${i === last ? "border-action-primary bg-action-primary text-[#fff]" : "border-[#bae6fd] bg-surface-brand-subtle text-text-brand"}`}>{i + 1}</span>
-            <div className="min-w-0 pt-1.5">
-              <p className="type-subheading">{s.title}</p>
-              <p className="type-body-sm mt-1 text-text-secondary">{s.body}</p>
-              {s.chip ? <span className="type-label mt-3 inline-flex min-h-10 items-center rounded-full border border-border-subtle bg-surface-subtle px-4">{s.chip}</span> : null}
+          <li key={s.title} className="flex gap-4 py-4">
+            <span aria-hidden className="w-4 shrink-0 pt-0.5 text-sm font-medium leading-5 text-text-secondary">{i + 1}</span>
+            <div className="min-w-0">
+              <p className="flex flex-wrap items-center gap-2 text-sm font-medium leading-5">
+                {s.title}
+                {s.chip ? <span className="inline-flex items-center rounded-full border border-border-subtle bg-surface-subtle px-2.5 py-0.5 text-xs font-medium">{s.chip}</span> : null}
+              </p>
+              <p className="mt-1 text-sm leading-5 text-text-secondary">{s.body}</p>
             </div>
           </li>
         ))}
