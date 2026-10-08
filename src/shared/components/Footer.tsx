@@ -1,5 +1,6 @@
 import { createT } from "@/i18n/translate";
 import type { Locale } from "@/i18n/config";
+import { StoreIcons } from "@/shared/ui/StoreIcons";
 import { LocalLink } from "./LocalLink";
 
 /** Same link set as the live footer, grouped so it can be scanned. */
@@ -24,16 +25,7 @@ export function Footer({ locale }: { locale: Locale }) {
             </LocalLink>
             <LocalLink href="/download" className="type-label inline-flex min-h-12 items-center rounded-full border border-border-subtle bg-surface-raised px-6 hover:bg-surface-subtle">
               {t("footer.getApp")}
-              <span aria-hidden className="ml-3 flex items-center gap-2">
-                {/* App Store: a rounded tile with the "A" made of three strokes. */}
-                <svg viewBox="0 0 24 24" className="size-5">
-                  <rect x="1" y="1" width="22" height="22" rx="5.500" fill="currentColor" />
-                  <g fill="none" stroke="#fff" strokeWidth="1.800" strokeLinecap="round">
-                    <path d="m12 5.500-5 9.500" /><path d="m12 5.500 5 9.500" /><path d="M8.600 12.800h8M6.200 17.500h4M14 17.500h3.800" />
-                  </g>
-                </svg>
-                <svg viewBox="0 0 24 24" className="size-5" fill="currentColor"><path d="M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.490 1.490 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.600l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.450.195a1.466 1.466 0 0 0-.946-.179l11.040 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.540-3.230-3.210z" /></svg>
-              </span>
+              <span className="ml-3"><StoreIcons /></span>
             </LocalLink>
           </div>
           <nav aria-label={t("nav.footer")} className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4">

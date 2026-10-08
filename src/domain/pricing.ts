@@ -18,6 +18,9 @@ export interface PricingRules {
 
 export interface PriceLine {
   key: "rate" | "discount" | "platformFee";
+  /** Set when a booking has several room types: the room this line is for, and its own unit rate. */
+  label?: string;
+  rate?: number;
   quantity?: number;
   unit?: "night" | "stay";
   amount: number;
@@ -41,6 +44,8 @@ export interface PricingInput {
   unitRate: number;
   nights: number;
   rooms: number;
+  /** Several room types in one booking. When given, they replace `unitRate` and `rooms`. */
+  items?: { label: string; unitRate: number; rooms: number }[];
   stayType: StayType;
   discount?: number;
   mode: PaymentMode;
@@ -53,7 +58,8 @@ export function computePrice(input: PricingInput): PriceBreakdown {
   const { unitRate, rooms, stayType, mode, rules } = input;
   // Session and daycation are priced per stay, not per night.
   const units = stayType === "overnight" ? Math.max(1, input.nights) : 1;
-  const subtotal = unitRate * units * Math.max(1, rooms);
+  const items = input.items?.length ? input.items : null;
+  const subtotal = items ? items.reduce((sum, i) => sum + i.unitRate * units * Math.max(1, i.rooms), 0) : unitRate * units * Math.max(1, rooms);
   const discount = Math.min(input.discount ?? 0, subtotal);
   const platformFee = rules.platformFee[mode];
   const total = subtotal - discount + platformFee;
@@ -64,11 +70,12 @@ export function computePrice(input: PricingInput): PriceBreakdown {
     payNow = Math.min(total, roundKs((subtotal - discount) * (pct / 100)) + platformFee);
   }
 
-  const lines: PriceLine[] = [
-    { key: "rate", quantity: units * Math.max(1, rooms), unit: stayType === "overnight" ? "night" : "stay", amount: subtotal },
-  ];
+  const unit = stayType === "overnight" ? "night" : "stay";
+  const lines: PriceLine[] = items
+    ? items.map((i) => ({ key: "rate" as const, label: i.label, rate: i.unitRate, quantity: units * Math.max(1, i.rooms), unit, amount: i.unitRate * units * Math.max(1, i.rooms) }))
+    : [{ key: "rate", quantity: units * Math.max(1, rooms), unit, amount: subtotal }];
   if (discount > 0) lines.push({ key: "discount", amount: -discount });
   if (platformFee > 0) lines.push({ key: "platformFee", amount: platformFee });
 
-  return { lines, unitRate, subtotal, discount, platformFee, total, payNow, payAtProperty: total - payNow, mode };
+  return { lines, unitRate: items?.[0]?.unitRate ?? unitRate, subtotal, discount, platformFee, total, payNow, payAtProperty: total - payNow, mode };
 }

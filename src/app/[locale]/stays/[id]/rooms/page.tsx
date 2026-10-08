@@ -12,6 +12,8 @@ import { Breadcrumbs } from "@/shared/components/Breadcrumbs";
 import { Container } from "@/shared/layout/Container";
 import { EmptyState } from "@/shared/ui/States";
 import { StatusBanner } from "@/shared/ui/StatusBanner";
+import { parseSelection } from "@/features/stay-detail/selection";
+import { RoomSelectionSummary, type SelectableRoom } from "@/features/stay-detail/RoomSelectionSummary";
 import { parseSearchParams, toQueryString } from "@/validation/search";
 
 type Props = { params: Promise<{ locale: string; id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
@@ -31,7 +33,9 @@ export default async function StayRoomsPage({ params, searchParams }: Props) {
 
   const t = createT(locale);
   const today = todayIso();
-  const { params: p } = parseSearchParams(await searchParams, today);
+  const rawParams = await searchParams;
+  const { params: p } = parseSearchParams(rawParams, today);
+  const sel = parseSelection(rawParams.sel);
   const all = await getAvailableRooms(id, p);
   const guestType = p.foreigner ? "foreigner" : "local";
   const offered = stayTypesOffered(stay.rooms);
@@ -54,6 +58,13 @@ export default async function StayRoomsPage({ params, searchParams }: Props) {
     const price = (r: (typeof rooms)[number]) => rateFor(r, p.stayType, guestType) ?? Number.POSITIVE_INFINITY;
     rooms.sort((a, b) => (p.sort === "price-asc" ? price(a) - price(b) : price(b) - price(a)));
   }
+
+  const selectable: SelectableRoom[] = all
+    .map((r) => ({ id: r.id, name: r.name, rate: rateFor(r, p.stayType, guestType), available: r.availableCount, capacity: r.capacity }))
+    .filter((r): r is SelectableRoom => r.rate !== null && r.available > 0);
+  const summary = (className?: string) => (
+    <RoomSelectionSummary stayId={id} rooms={selectable} nights={nights} stayType={p.stayType} mode={stay.payment.mode} depositPct={stay.payment.depositPct} guests={p.adults + p.children} query={query} className={className} />
+  );
 
   return (
     <Container className="pb-28 lg:pb-8">
@@ -83,13 +94,14 @@ export default async function StayRoomsPage({ params, searchParams }: Props) {
           ) : (
             <ul className="flex flex-col gap-4">
               {rooms.map((r) => (
-                <RoomCard key={r.id} room={r} locale={locale} stayId={id} checkIn={p.checkIn} checkOut={p.checkOut} rooms={p.rooms} stayType={p.stayType} guestType={guestType} query={query} payment={stay.payment} />
+                <RoomCard key={r.id} room={r} locale={locale} stayId={id} checkIn={p.checkIn} checkOut={p.checkOut} selected={sel[r.id] ?? 0} stayType={p.stayType} guestType={guestType} query={query} payment={stay.payment} />
               ))}
             </ul>
           )}
+          <div className="rounded-card border border-border-subtle bg-surface-raised p-5 lg:hidden">{summary()}</div>
         </section>
 
-        <BookingCard params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} reserveHref={null} />
+        <BookingCard params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} reserveHref={null} footer={summary()} />
       </div>
 
       <StayBookingBar params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} />

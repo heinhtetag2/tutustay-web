@@ -38,6 +38,8 @@ export function Filters({ params, sheetOnly = false, sidebar = false, inline = f
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
+  const morePanel = useRef<HTMLDivElement>(null);
+  const [moreRight, setMoreRight] = useState(false);
 
   const apply = (patch: Partial<SearchParams>) => {
     const qs = toQueryString({ ...params, ...patch });
@@ -122,17 +124,28 @@ export function Filters({ params, sheetOnly = false, sidebar = false, inline = f
         <PropertyTypeMenu value={params.category} onChange={(category) => apply({ category })} pillCls={pill} />
         <button type="button" aria-pressed={params.popular} onClick={() => apply({ popular: !params.popular })} className={chip(params.popular)}><ChipIcon name="popular" />{t("filter.popular")}</button>
         <button type="button" aria-pressed={params.bookable} onClick={() => apply({ bookable: !params.bookable })} className={chip(params.bookable)}><ChipIcon name="bookable" />{t("filter.bookable")}</button>
-        <button type="button" aria-pressed={params.coupons} onClick={() => apply({ coupons: !params.coupons })} className={chip(params.coupons)}><ChipIcon name="coupons" />{t("filter.coupons")}</button>
-        <button type="button" aria-pressed={params.refundable} onClick={() => apply({ refundable: !params.refundable })} className={chip(params.refundable)}><ChipIcon name="refundable" />{t("filter.refundable")}</button>
-        <details className="group relative">
+        <details
+          className="group relative"
+          onToggle={(e) => {
+            // Keep the panel on screen: if opening to the right of the button would run past the window edge, open it to the left instead.
+            if (!e.currentTarget.open) return;
+            const r = e.currentTarget.getBoundingClientRect();
+            setMoreRight(r.left + (morePanel.current?.offsetWidth ?? 320) > window.innerWidth - 16);
+          }}
+        >
           <summary className={`${chip(false)} flex list-none items-center gap-2 [&::-webkit-details-marker]:hidden`}>
             <ChipIcon name="more" />{t("filter.more")}{active ? ` (${active})` : ""}
             <svg aria-hidden viewBox="0 0 24 24" className="size-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
           </summary>
-          <div className="no-scrollbar absolute left-0 top-full z-20 mt-2 max-h-[min(34rem,calc(100dvh-14rem))] w-80 overflow-y-auto rounded-card border border-border-subtle bg-surface-raised p-5 shadow-[0_8px_32px_#00000040]">
+          <div ref={morePanel} className={`no-scrollbar absolute ${moreRight ? "right-0" : "left-0"} top-full z-20 mt-2 max-h-[min(34rem,calc(100dvh-14rem))] w-80 overflow-y-auto rounded-card border border-border-subtle bg-surface-raised p-5 shadow-[0_8px_32px_#00000040]`}>
             <fieldset className="mb-5 flex flex-col gap-2 border-b border-border-subtle pb-5">
               <legend className="type-label mb-2">{t("filter.price")}</legend>
               <PriceRange min={params.minPrice} max={params.maxPrice} onCommit={(a, b) => apply({ minPrice: a, maxPrice: b })} />
+            </fieldset>
+            <fieldset className="mb-5 flex flex-col gap-3 border-b border-border-subtle pb-5">
+              <legend className="type-label mb-2">{t("filter.quick")}</legend>
+              <Checkbox label={t("filter.coupons")} checked={params.coupons} onChange={(e) => apply({ coupons: e.target.checked })} />
+              <Checkbox label={t("filter.refundable")} checked={params.refundable} onChange={(e) => apply({ refundable: e.target.checked })} />
             </fieldset>
             {body}
           </div>
@@ -221,9 +234,9 @@ export function SortSelect({ params }: { params: SearchParams }) {
   const pathname = usePathname();
   return (
     <label className="flex items-center gap-2">
-      <span className="type-label whitespace-nowrap">{t("sort.label")}</span>
+      <span className="type-body-sm whitespace-nowrap">{t("sort.label")}</span>
       <Select
-        className="w-auto min-h-10 gap-2 rounded-full pl-4 pr-3.5 text-sm"
+        className="w-auto min-h-10! gap-2 rounded-full py-0! pl-3.5 pr-3 text-sm! leading-5! shadow-[0_2px_8px_#00000026]"
         value={params.sort}
         onChange={(e) => {
           const qs = toQueryString({ ...params, sort: e.target.value as SearchParams["sort"] });

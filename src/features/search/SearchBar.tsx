@@ -85,10 +85,10 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
   const hd = variant === "header";
   // The top-bar and home searches share one look: an icon per part, the stay type as its own part, and the pill opens up on focus.
   const rich = variant === "header" || variant === "hero";
-  // Each part has an icon that stays hidden until that part is in use (focused or open), like Fresha's search.
+  // Each part has an icon. In the top bar it stays hidden until that part is in use (focused or open), like Fresha's search; on the home search it is always shown.
   const seg = (icon: ReactNode, node: ReactNode, cls = "") => rich ? (
     <div className={`group/seg flex items-center ${cls}`}>
-      <span aria-hidden className="mr-2.5 hidden shrink-0 text-text-primary xl:group-focus-within/seg:block xl:group-has-[details[open]]/seg:block xl:group-focus-within/pill:block xl:group-has-[details[open]]/pill:block">{icon}</span>
+      <span aria-hidden className={`mr-2.5 shrink-0 text-text-primary ${variant === "hero" ? "hidden lg:block" : "hidden xl:group-focus-within/seg:block xl:group-has-[details[open]]/seg:block xl:group-focus-within/pill:block xl:group-has-[details[open]]/pill:block"}`}>{icon}</span>
       <div className="min-w-0 flex-1">{node}</div>
     </div>
   ) : node;

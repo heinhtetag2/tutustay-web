@@ -1,7 +1,7 @@
 import { type CSSProperties, type ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { distanceKm, formatKs, todayIso, type PropertyCategory } from "@/domain";
-import { AppSection, PartnerSection } from "@/features/home/AppAndPartnerSections";
+import { AppSection } from "@/features/home/AppAndPartnerSections";
 import { HeroCarousel } from "@/features/home/HeroCarousel";
 import { HowItWorks } from "@/features/home/HowItWorks";
 import { TrustPoints } from "@/features/home/TrustPoints";
@@ -31,6 +31,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { params: p } = parseSearchParams({}, today);
   const { items } = await searchStays({ ...p, sort: "rating" });
   const featured = items.filter((i) => i.available).slice(0, 4);
+  const mostPopular = items
+    .filter((i) => i.available && i.stay.popular)
+    .sort((a, b) => (b.stay.rating?.count ?? 0) - (a.stay.rating?.count ?? 0))
+    .slice(0, 4);
   // DEMO: shown with a fixed Yangon point until the guest taps "Stay near you" (we never read their location unprompted).
   const nearby = items
     .filter((i) => i.available)
@@ -38,8 +42,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, 4);
   const appCovers = items.filter((i) => i.available).slice(0, 4).map((i) => ({ name: i.stay.name, place: [i.stay.place.township, i.stay.place.city].filter(Boolean).join(", "), price: i.fromRate !== null ? formatKs(i.fromRate) : "", src: stayCover(i.stay.id) }));
-  const rated = items.filter((i) => i.stay.rating);
-  const avgScore = rated.length ? rated.reduce((a, i) => a + (i.stay.rating?.score ?? 0), 0) / rated.length : 0;
   const carry = toQueryString({ checkIn: p.checkIn, checkOut: p.checkOut });
   const places = listPlaces();
 
@@ -63,6 +65,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       <Container size="wide">
         <Section>
+          <div className="rounded-card bg-surface-brand-subtle p-6 md:p-10">
           <div className="mb-6"><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.byType")}</h2></div>
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
             {CATEGORIES.map((c, i) => {
@@ -83,6 +86,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               );
             })}
           </ul>
+          </div>
         </Section>
 
         <Section>
@@ -108,26 +112,55 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </Section>
 
         <Section>
-          <div className="mb-4"><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.featured")}</h2></div>
+          <div className="mb-4 flex items-end justify-between gap-4"><div><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.featured")}</h2></div><LocalLink href="/search" className="type-label inline-flex min-h-11 shrink-0 items-center text-text-link hover:underline">{t("nav.allStays")} →</LocalLink></div>
           <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {featured.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={carry} stayType="overnight" foreigner={false} layout="card" />)}
           </ul>
         </Section>
 
+        {mostPopular.length > 0 ? (
+          <Section>
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" />
+                <h2 className="type-heading">{t("home.mostPopular")}</h2>
+                <p className="type-body-sm mt-1 text-text-secondary">{t("home.mostPopular.body")}</p>
+              </div>
+              <LocalLink href="/search?popular=true" className="type-label inline-flex min-h-11 shrink-0 items-center text-text-link hover:underline">{t("nav.allStays")} →</LocalLink>
+            </div>
+            <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {mostPopular.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={carry} stayType="overnight" foreigner={false} layout="card" />)}
+            </ul>
+          </Section>
+        ) : null}
+
         {nearby.length > 0 ? (
           <Section>
-            <div className="mb-4">
+            <div className="rounded-card bg-surface-subtle p-6 md:p-10">
+            <div className="mb-4 flex items-end justify-between gap-4">
               <div>
                 <span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" />
                 <h2 className="type-heading">{t("home.nearby.title")}</h2>
                 <p className="type-body-sm mt-1 text-text-secondary">{t("home.nearby.body")}</p>
               </div>
+              <LocalLink href="/search" className="type-label inline-flex min-h-11 shrink-0 items-center text-text-link hover:underline">{t("nav.allStays")} →</LocalLink>
             </div>
             <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {nearby.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={carry} stayType="overnight" foreigner={false} layout="card" />)}
             </ul>
+            </div>
           </Section>
         ) : null}
+
+        <Section>
+          <div className="rounded-card bg-surface-brand-subtle p-6 md:p-10">
+            <h2 className="type-heading mb-6">{t("home.how")}</h2>
+            <HowItWorks locale={locale} flat />
+            <hr className="my-8 border-border-subtle" />
+            <h2 className="sr-only">{t("home.trust")}</h2>
+            <TrustPoints locale={locale} flat />
+          </div>
+        </Section>
 
         <Section>
           <ul className="grid gap-4 md:grid-cols-2">
@@ -152,32 +185,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </Section>
 
         <Section>
-          <div className="rounded-card bg-surface-brand-subtle p-6 md:p-10">
-            <h2 className="type-heading mb-6">{t("home.how")}</h2>
-            <HowItWorks locale={locale} flat />
-            <hr className="my-8 border-border-subtle" />
-            <h2 className="sr-only">{t("home.trust")}</h2>
-            <TrustPoints locale={locale} flat />
-          </div>
-        </Section>
-
-        <Section>
-          <ul className="grid gap-4 md:grid-cols-2">
-            <li>
-              <LocalLink href="/account/promo-codes?tab=all" className="group relative flex min-h-48 items-end overflow-hidden rounded-card bg-cover bg-center" style={{ backgroundImage: "url(/coupon/coupon-bg.webp)", backgroundColor: "#a8e3f1" }}>
-                <span className="m-4 flex max-w-sm flex-col items-start gap-2 rounded-card bg-[#ffffffe6] p-4 backdrop-blur-sm">
-                  <span className="type-heading text-promo-text">{t("home.tile.claim.title")}</span>
-                  <span className="type-body-sm">{t("home.tile.claim.body")}</span>
-                  <span className="type-label mt-1 inline-flex min-h-10 items-center rounded-full bg-[#fff] px-4 text-text-primary">{t("nav.deals")}</span>
-                </span>
-              </LocalLink>
-            </li>
-          </ul>
-        </Section>
-
-        <Section>
           <div className="rounded-card bg-surface-subtle p-6 md:p-10">
-          <div className="mb-4"><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.faq")}</h2></div>
+          <div className="mb-4 flex items-end justify-between gap-4"><div><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.faq")}</h2></div><LocalLink href="/help" className="type-label inline-flex min-h-11 shrink-0 items-center text-text-link hover:underline">{t("home.faq.moreHelp")} →</LocalLink></div>
           <div className="grid gap-3 lg:grid-cols-2">
             {([1, 2, 3, 4] as const).map((n) => (
               <details key={n} className="group rounded-card border border-border-subtle bg-surface-raised">
@@ -189,13 +198,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </details>
             ))}
           </div>
-          <LocalLink href="/help" className="type-label mt-4 inline-flex min-h-11 items-center text-text-link">{t("home.faq.moreHelp")} →</LocalLink>
           </div>
         </Section>
 
-        <AppSection locale={locale} covers={appCovers} />
       </Container>
-      <PartnerSection locale={locale} cover={appCovers[3]} score={avgScore} stays={items.length} />
+      <div className="-mb-12 overflow-hidden bg-[radial-gradient(55%_55%_at_85%_65%,#bae6fd_0%,#e0f2fe_50%,transparent_100%),linear-gradient(#fff_0%,#f5fbff_55%,#eaf6ff_100%)]">
+        <AppSection locale={locale} covers={appCovers} />
+      </div>
     </>
   );
 }

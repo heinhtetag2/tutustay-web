@@ -1,12 +1,12 @@
 import { rateFor, nightsBetween, type GuestType, type PaymentMode, type Room, type StayType } from "@/domain";
 import type { Locale } from "@/i18n/config";
 import { createT } from "@/i18n/translate";
-import { LinkButton } from "@/shared/ui/Button";
 import { AmenityIcon } from "@/shared/ui/AmenityIcon";
 import { Badge } from "@/shared/ui/Badge";
 import { PhotoTile } from "@/shared/ui/PhotoTile";
 import { roomCover } from "./photos";
 import { RoomPrice } from "./RoomPrice";
+import { RoomQuantity } from "./RoomQuantity";
 
 interface Props {
   room: Room;
@@ -14,7 +14,8 @@ interface Props {
   stayId: string;
   checkIn: string;
   checkOut: string;
-  rooms: number;
+  /** How many of this room are picked (0 = none). */
+  selected: number;
   stayType: StayType;
   guestType: GuestType;
   /** Query string carrying the whole search state into the booking step. */
@@ -22,7 +23,7 @@ interface Props {
   payment: { mode: PaymentMode; depositPct?: number };
 }
 
-export function RoomCard({ room, locale, stayId, checkIn, checkOut, rooms, stayType, guestType, query, payment }: Props) {
+export function RoomCard({ room, locale, stayId, checkIn, checkOut, selected, stayType, guestType, query, payment }: Props) {
   const t = createT(locale);
   const rate = rateFor(room, stayType, guestType);
   const soldOut = room.availableCount === 0;
@@ -49,8 +50,8 @@ export function RoomCard({ room, locale, stayId, checkIn, checkOut, rooms, stayT
       <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-border-subtle pt-4">
         {bookable ? (
           <>
-            <RoomPrice rate={rate} nights={nights} rooms={rooms} stayType={stayType} mode={payment.mode} depositPct={payment.depositPct} />
-            <LinkButton variant="cta" href={`/stays/${stayId}/book?${query}&room=${room.id}`} className="w-full sm:w-auto">{t("room.choose")}</LinkButton>
+            <RoomPrice rate={rate} nights={nights} rooms={Math.max(1, selected)} stayType={stayType} mode={payment.mode} depositPct={payment.depositPct} />
+            <RoomQuantity roomId={room.id} value={Math.min(selected, room.availableCount)} max={room.availableCount} name={room.name} />
           </>
         ) : (
           <p className="type-label text-text-secondary">

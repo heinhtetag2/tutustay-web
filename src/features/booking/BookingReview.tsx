@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   applyCoupon, computePrice, formatDate, formatKs, INITIAL_STATUS, nightsBetween, rateFor,
   type GuestType, type PaymentMode, type Room, type StayType, type SessionHours,
 } from "@/domain";
 import { ASSUMED_PRICING_RULES } from "@/config/pricing";
+import { dataLabel } from "@/i18n/dataLabels";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { createBooking } from "@/services/bookings.service";
 import { findCoupon } from "@/services/coupons.service";
@@ -21,8 +22,10 @@ import { HowYoullPay } from "./HowYoullPay";
 import { PriceBreakdown } from "./PriceBreakdown";
 
 export interface ReviewContext {
-  stay: { id: string; name: string; phone: string; checkIn: string; checkOut: string; payment: { mode: PaymentMode; depositPct?: number } };
+  stay: { id: string; name: string; place: { region: string; city: string; township?: string }; coords: { lat: number; lng: number }; phone: string; checkIn: string; checkOut: string; payment: { mode: PaymentMode; depositPct?: number } };
   room: Room;
+  /** Every room type in this booking and how many of each. `room` is the first one. */
+  lines: { room: Room; qty: number }[];
   stayType: StayType;
   sessionHours: SessionHours;
   guestType: GuestType;
@@ -57,17 +60,36 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
   const [submitting, setSubmitting] = useState(false);
   const clear = (k: keyof Errors) => setErrors((e) => (e[k] ? { ...e, [k]: undefined } : e));
 
-  const rate = rateFor(ctx.room, ctx.stayType, ctx.guestType) ?? 0;
+  const items = ctx.lines.map((l) => ({ label: l.room.name, unitRate: rateFor(l.room, ctx.stayType, ctx.guestType) ?? 0, rooms: l.qty }));
+  const rate = items[0]?.unitRate ?? 0;
+  const roomName = ctx.lines.map((l) => `${l.qty} × ${l.room.name}`).join(" + ");
+  const refundable = ctx.lines.every((l) => l.room.refundable);
   const nights = Math.max(1, nightsBetween(ctx.checkIn, ctx.checkOut));
   const overnight = ctx.stayType === "overnight";
 
   const price = useMemo(
-    () => computePrice({ unitRate: rate, nights, rooms: ctx.rooms, stayType: ctx.stayType, discount: applied?.discount, mode, depositPct, rules: ASSUMED_PRICING_RULES }),
-    [rate, nights, ctx.rooms, ctx.stayType, applied, mode, depositPct],
+    () => computePrice({ unitRate: rate, nights, rooms: ctx.rooms, items, stayType: ctx.stayType, discount: applied?.discount, mode, depositPct, rules: ASSUMED_PRICING_RULES }),
+    [rate, items, nights, ctx.rooms, ctx.stayType, applied, mode, depositPct],
   );
 
+  /** Demo helper: fills the guest details, a sample request, the sample coupon code and the terms so the whole booking can be tried without typing. */
+  function fillDemo() {
+    setName("Aye Mon");
+    setPhone("09123456789");
+    setEmail((e) => e || "aye.mon@example.com");
+    setForOther(false);
+    setStayingName("");
+    setRequests("Late check-in around 9 pm, please.");
+    setCode("WELCOME10");
+    setTerms(true);
+    setErrors({});
+  }
+
+  // Open the page with ?demo=1 to land on a fully filled form.
+  useEffect(() => { if (new URLSearchParams(window.location.search).get("demo") === "1") fillDemo(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   function onApplyCoupon() {
-    const subtotal = computePrice({ unitRate: rate, nights, rooms: ctx.rooms, stayType: ctx.stayType, mode, depositPct, rules: ASSUMED_PRICING_RULES }).subtotal;
+    const subtotal = computePrice({ unitRate: rate, nights, rooms: ctx.rooms, items, stayType: ctx.stayType, mode, depositPct, rules: ASSUMED_PRICING_RULES }).subtotal;
     const coupon = findCoupon(code);
     const result = applyCoupon(coupon, subtotal, ctx.today);
     if (result.ok && coupon) {
@@ -99,11 +121,11 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
     setSubmitting(true);
     const booking = createBooking({
       status: INITIAL_STATUS, mode,
-      stayId: ctx.stay.id, stayName: ctx.stay.name, stayPhone: ctx.stay.phone, roomId: ctx.room.id, roomName: ctx.room.name,
+      stayId: ctx.stay.id, stayName: ctx.stay.name, stayPhone: ctx.stay.phone, roomId: ctx.room.id, roomName,
       stayType: ctx.stayType, sessionHours: ctx.stayType === "session" ? ctx.sessionHours : undefined, guestType: ctx.guestType,
       checkIn: ctx.checkIn, checkOut: ctx.checkOut, adults: ctx.adults, children: ctx.children, rooms: ctx.rooms,
       guest: { name: parsed.data.name, phone: parsed.data.phone, email: parsed.data.email, bookingForOther: parsed.data.bookingForOther, stayingGuestName: parsed.data.stayingGuestName || undefined },
-      specialRequests: parsed.data.specialRequests || undefined, couponCode: applied?.code, refundable: ctx.room.refundable, price,
+      specialRequests: parsed.data.specialRequests || undefined, couponCode: applied?.code, refundable, price,
     });
     router.push(`/${locale}/bookings/${booking.ref}`);
   }
@@ -114,7 +136,10 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
     <form onSubmit={onSubmit} noValidate className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
       <div className="flex flex-col gap-8">
         <section aria-labelledby="who" className="flex flex-col gap-4">
-          <h2 id="who" className="type-heading">{t("review.who")}</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="who" className="type-heading">{t("review.who")}</h2>
+            <Button type="button" variant="secondary" onClick={fillDemo}>{t("partner.fillDemo")}</Button>
+          </div>
           <Field label={t("review.name")} error={errors.name} required>
             {({ id, describedBy, invalid }) => <Input id={id} value={name} autoComplete="name" onChange={(e) => { setName(e.target.value); clear("name"); }} aria-describedby={describedBy} invalid={invalid} />}
           </Field>
@@ -157,7 +182,7 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
           <h2 id="policies" className="type-heading">{t("review.policies")}</h2>
           <ul className="type-body flex list-disc flex-col gap-2 pl-5 text-text-secondary">
             <li>{t("policy.times", { in: ctx.stay.checkIn, out: ctx.stay.checkOut })}</li>
-            <li>{t(ctx.room.refundable ? "policy.cancel.refundable" : "policy.cancel.nonRefundable")}</li>
+            <li>{t(refundable ? "policy.cancel.refundable" : "policy.cancel.nonRefundable")}</li>
             <li>{t(mode === "pay_at_hotel" ? "policy.pay.cash" : "policy.pay.deposit")}</li>
             <li>{t("policy.cancelByPhone")}</li>
             <li>{t("policy.changeDates")}</li>
@@ -181,15 +206,19 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
 
       <aside aria-label={t("review.summary")} className="flex h-fit flex-col gap-4 rounded-card border border-border-subtle bg-surface-raised p-5 shadow-raised lg:sticky lg:top-6">
         <div>
-          <p className="type-body-sm text-text-secondary">{ctx.stay.name}</p>
-          <h2 className="type-subheading">{ctx.room.name}</h2>
-          <div className="mt-2"><PaymentModeBadge mode={mode} depositPct={depositPct} /></div>
+          <h2 className="type-heading">{ctx.stay.name}</h2>
+          <p className="type-body-sm mt-1 flex items-start gap-1.5 text-text-secondary">
+            <svg aria-hidden viewBox="0 0 24 24" className="mt-0.5 size-4 shrink-0 text-text-brand" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-6.100-7-11.500a7 7 0 0 1 14 0C19 14.900 12 21 12 21Z" /><circle cx="12" cy="9.500" r="2.500" /></svg>
+            <span>{[ctx.stay.place.township, ctx.stay.place.city, ctx.stay.place.region].filter(Boolean).map((x) => dataLabel(locale, x as string)).join(", ")}</span>
+          </p>
+          <ul className="mt-4 flex flex-col gap-0.5">{ctx.lines.map((l) => <li key={l.room.id} className="type-label">{l.qty} × {l.room.name}</li>)}</ul>
           <p className="type-body-sm mt-1 text-text-secondary">{dateText}</p>
           <p className="type-body-sm text-text-secondary">
             {t(`stayType.${ctx.stayType}`)}{ctx.stayType === "session" ? ` · ${t("stayType.hours", { n: ctx.sessionHours })}` : ""} · {t(ctx.guestType === "foreigner" ? "price.foreignerRate" : "price.localRate")}
           </p>
           <p className="type-body-sm text-text-secondary">{guestSummaryText(t, ctx.adults + ctx.children, ctx.rooms)}</p>
         </div>
+        <div><PaymentModeBadge mode={mode} depositPct={depositPct} /></div>
         <PriceBreakdown price={price} />
       </aside>
     </form>

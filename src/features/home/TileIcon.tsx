@@ -6,6 +6,7 @@ const PATHS = {
   mine: <><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z" /><path d="m9 10 2 2 4-4" /></>,
   app: <><rect x="7" y="2.500" width="10" height="19" rx="2.500" /><path d="M11 18.500h2" /></>,
   lowest: <><path d="M4 7l6 6 4-4 6 6" /><path d="M20 10v5h-5" /></>,
+  calendar: <><rect x="3" y="5" width="18" height="16" rx="2.500" /><path d="M3 10h18M8 3v4M16 3v4" /></>,
   browse: <><circle cx="11" cy="11" r="6.500" /><path d="m20 20-4.200-4.200" /></>,
 } as const;
 

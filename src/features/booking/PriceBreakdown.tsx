@@ -19,7 +19,9 @@ export function PriceBreakdown({ price, className }: { price: Breakdown; classNa
         {price.lines.map((l) => (
           <div key={l.key} className={row}>
             <dt className="text-text-secondary">
-              {l.key === "rate"
+              {l.key === "rate" && l.label
+                ? `${l.label} · ${formatKs(l.rate ?? price.unitRate)} × ${l.quantity ?? 1}`
+                : l.key === "rate"
                 ? t(
                     `price.line.${l.unit === "night" ? "night" : "stay"}${(l.quantity ?? 1) === 1 ? "One" : "Many"}` as "price.line.nightOne",
                     { rate: formatKs(price.unitRate), n: l.quantity ?? 1 },

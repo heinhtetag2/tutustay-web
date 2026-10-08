@@ -9,7 +9,7 @@ import { DateField } from "@/shared/components/DateField";
 import { Checkbox, Field } from "@/shared/ui/Field";
 import { Price } from "@/shared/ui/Price";
 import { toQueryString, type SearchParams } from "@/validation/search";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { LocalLink } from "@/shared/components/LocalLink";
 
 interface Props {
@@ -22,13 +22,15 @@ interface Props {
   sessionHours?: readonly number[];
   /** On the stay page: where "Reserve" goes (the rooms screen). Without it the button jumps to the rooms on this page. */
   reserveHref?: string | null;
+  /** Replaces the reserve button, for pages where the call to action depends on a selection. */
+  footer?: ReactNode;
 }
 
 /**
  * Sticky booking card (desktop right column). It edits the same URL the room list reads,
  * so the selection survives refresh, sharing and the sign-in gate.
  */
-export function BookingCard({ params, today, offered, fromRate, soldOut, sessionHours, reserveHref }: Props) {
+export function BookingCard({ params, today, offered, fromRate, soldOut, sessionHours, reserveHref, footer }: Props) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -87,12 +89,12 @@ export function BookingCard({ params, today, offered, fromRate, soldOut, session
       />
       {error ? <p role="alert" className="type-body-sm text-error-text">{error}</p> : null}
       <p className="type-body-sm text-text-secondary">{t("booking.dates", { from: formatDate(params.checkIn, false, locale), to: overnight ? formatDate(params.checkOut, false, locale) : "—" })}</p>
-      {reserveHref === null ? null : reserveHref ? (
+      {footer ? <div className="border-t border-border-subtle pt-4">{footer}</div> : reserveHref === null ? null : reserveHref ? (
         <LocalLink href={reserveHref} className="type-label inline-flex min-h-12 items-center justify-center rounded-full bg-action-cta px-6 text-text-on-action hover:bg-action-cta-hover">{t("booking.reserve")}</LocalLink>
       ) : (
         <a href="#rooms" className="type-label inline-flex min-h-12 items-center justify-center rounded-full bg-action-cta px-6 text-text-on-action hover:bg-action-cta-hover">{t("booking.seeRooms")}</a>
       )}
-      {reserveHref === null ? null : <p className="type-body-sm text-center text-text-secondary">{t("booking.nothingChargedYet")}</p>}
+      {footer || reserveHref === null ? null : <p className="type-body-sm text-center text-text-secondary">{t("booking.nothingChargedYet")}</p>}
     </aside>
   );
 }

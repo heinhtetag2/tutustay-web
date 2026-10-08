@@ -72,7 +72,7 @@ export function Header() {
 
         {!isSearch ? (
           <nav aria-label={t("nav.main")} className="hidden items-center justify-center gap-1 lg:flex">
-            {([["/search", "nav.stays"], ["/account/promo-codes", "nav.deals"], ["/account/bookings", "nav.myBookings"], ["/help", "nav.help"]] as const).map(([href, key]) => (
+            {([["/search", "nav.stays"], ["/account/promo-codes", "nav.deals"], ["/account/bookings", "nav.myBookings"], ["/help", "nav.help"], ["/partners", "partners.apply"]] as const).map(([href, key]) => (
               <LocalLink key={href} href={href} className={`type-label inline-flex items-center gap-2 rounded-full px-4 py-2 font-semibold! transition-colors ${overHero ? "hover:bg-[#ffffff33]" : "text-text-primary hover:bg-surface-subtle"}`}>
                 {t(key)}
                 {href === "/account/bookings" && upcoming ? <span aria-label={`${upcoming}`} className="flex min-w-5 items-center justify-center rounded-full bg-error-text px-1.5 text-xs font-semibold leading-5 text-surface-raised">{upcoming}</span> : null}
