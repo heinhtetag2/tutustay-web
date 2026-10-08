@@ -62,7 +62,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </div>
 
       <Container size="wide">
-        <Section>
+        <Section className="pt-12 md:pt-20">
           <div className="mb-4 flex items-end justify-between gap-4">
             <div><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.places")}</h2></div>
             <LocalLink href="/destinations" className="type-label inline-flex min-h-11 shrink-0 items-center text-text-link hover:underline">{t("home.allPlaces")} →</LocalLink>
