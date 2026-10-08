@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { formatKs } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
+import { ShowMapLink } from "./MapOverlayHost";
 import { LocalLink } from "@/shared/components/LocalLink";
 import type { StaySummary } from "@/services/stays.service";
 import { EmptyState } from "@/shared/ui/States";
@@ -25,6 +26,8 @@ interface Props {
   searchBar: React.ReactNode;
   /** Always-visible filters shown in the floating panel on wide screens (small screens use `controls`). */
   inlineFilters?: React.ReactNode;
+  /** Phones: the swipeable quick-filter chips under the title. */
+  chips?: React.ReactNode;
   /** Wide screens: the floating "Show list" pill over the map (a ViewToggle with its own position classes). */
   viewToggle?: React.ReactNode;
   notice?: React.ReactNode;
@@ -35,7 +38,7 @@ interface Props {
  * Results beside a sticky map (the Plum Guide pattern): a horizontal list on the left, price pins on the right.
  * Hovering a card highlights its pin and the other way round. Small screens show the list with a "Map" button.
  */
-export function SearchSplit({ items, query, stayType, foreigner, title, controls, empty, mapQuery, searchBar, inlineFilters, viewToggle, notice, className }: Props) {
+export function SearchSplit({ items, query, stayType, foreigner, title, controls, empty, mapQuery, searchBar, inlineFilters, chips, viewToggle, notice, className }: Props) {
   const t = useT();
   const locale = useLocale();
   const [selected, setSelected] = useState<string | null>(null);
@@ -63,13 +66,17 @@ export function SearchSplit({ items, query, stayType, foreigner, title, controls
     </div>
     <div className="grid lg:relative lg:min-h-0 lg:flex-1">
       <section aria-label={t("search.results")} className="min-w-0 px-4 pb-24 sm:px-6 md:px-8 no-scrollbar lg:absolute lg:bottom-4 lg:left-4 lg:top-4 lg:z-10 lg:w-[27rem] lg:overflow-y-auto lg:rounded-card lg:bg-surface-raised lg:px-5 lg:pb-4 lg:shadow-[0_8px_32px_#00000040]">
-        <div className="mb-2 flex flex-col gap-4 py-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <h1 className="type-subheading">{title}</h1>
-            <p className="type-body-sm mt-1 text-text-secondary">{t("search.trust")}</p>
+        <div className="mb-2 flex flex-col gap-3 py-4">
+          {/* Same top as the list view: the count with "Filter & Sort" on its right, then the quick chips, then the short note. */}
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="type-subheading min-w-0">{title}</h1>
+            <div className={`flex shrink-0 flex-wrap items-center justify-end gap-3 ${inlineFilters ? "lg:hidden" : ""}`}>{controls}</div>
+          </div>
+          {chips}
+          <div className="min-w-0">
+            <p className="type-body-sm text-text-secondary">{t("search.trust")}</p>
             <LocalLink href="/about" className="type-label mt-1 inline-block text-text-link underline underline-offset-4">{t("search.trustLink")}</LocalLink>
           </div>
-          <div className={`order-first flex flex-wrap items-center gap-3 sm:order-none sm:shrink-0 sm:justify-end ${inlineFilters ? "lg:hidden" : ""}`}>{controls}</div>
         </div>
         {items.length === 0 ? (
           <EmptyState title={empty.title} body={empty.body} action={empty.action} />
@@ -98,12 +105,13 @@ export function SearchSplit({ items, query, stayType, foreigner, title, controls
 
       {inlineFilters ? <div className="hidden lg:absolute lg:left-[28.5rem] lg:right-4 lg:top-4 lg:z-10 lg:block">{inlineFilters}</div> : null}
 
-      <LocalLink
-        href={`/search?${mapQuery}`}
-        className="type-label fixed bottom-5 left-1/2 z-20 inline-flex min-h-11 -translate-x-1/2 items-center gap-2 rounded-full bg-text-primary px-5 text-surface-raised shadow-high lg:hidden"
+      <ShowMapLink
+        href={`/${locale}/search?${mapQuery}`}
+        className="type-label fixed bottom-5 left-1/2 z-20 inline-flex min-h-12 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-text-primary px-5 text-surface-raised shadow-high transition-transform hover:scale-105 lg:hidden"
       >
-        <span aria-hidden>⌖</span>{t("map.show")}
-      </LocalLink>
+        <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="m9 4-6 2v14l6-2 6 2 6-2V4l-6 2Z" /><path d="M9 4v14M15 6v14" /></svg>
+        {t("view.showMap")}
+      </ShowMapLink>
     </div>
     </div>
   );

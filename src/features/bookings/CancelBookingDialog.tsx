@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { CANCEL_REASONS, type Booking, type CancelReason } from "@/domain";
 import { useT } from "@/i18n/I18nProvider";
 import { transitionBooking } from "@/services/bookings.service";
@@ -11,6 +11,7 @@ import { StatusBanner } from "@/shared/ui/StatusBanner";
 export function CancelBookingDialog({ booking }: { booking: Booking }) {
   const t = useT();
   const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   const [reason, setReason] = useState<CancelReason | undefined>();
   const close = () => dialog.current?.close();
   const confirm = () => {
@@ -28,12 +29,12 @@ export function CancelBookingDialog({ booking }: { booking: Booking }) {
         {t("cancel.action")}
       </Button>
       <dialog
-        ref={dialog} aria-labelledby="cancel-title"
+        ref={dialog} aria-labelledby={titleId}
         className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-card bg-surface-raised p-0 text-text-primary shadow-[0_8px_32px_#00000040] backdrop:bg-black/60"
       >
         <div className="flex flex-col gap-4 p-6">
           <div>
-            <h2 id="cancel-title" className="type-heading">{t("cancel.title")}</h2>
+            <h2 id={titleId} className="type-heading">{t("cancel.title")}</h2>
             <p className="type-body mt-2 text-text-secondary">{t("cancel.body")}</p>
           </div>
           <StatusBanner
@@ -44,7 +45,7 @@ export function CancelBookingDialog({ booking }: { booking: Booking }) {
             <legend className="type-label mb-2">{t("cancel.why")}</legend>
             {CANCEL_REASONS.map((r) => (
               <label key={r} className="type-body flex min-h-12 cursor-pointer items-center gap-3 rounded-field border border-border-control bg-surface-raised px-4 has-[:checked]:border-error-text has-[:checked]:bg-error-bg">
-                <input type="radio" name="cancel-reason" value={r} checked={reason === r} onChange={() => setReason(r)} className="size-5 accent-[var(--color-error-text)]" />
+                <input type="radio" name={`cancel-reason-${titleId}`} value={r} checked={reason === r} onChange={() => setReason(r)} className="size-5 accent-[var(--color-error-text)]" />
                 {t(`cancel.reason.${r}`)}
               </label>
             ))}

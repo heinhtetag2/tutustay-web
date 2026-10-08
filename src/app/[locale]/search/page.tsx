@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
 import { formatDate, todayIso } from "@/domain";
 import { SearchBar } from "@/features/search/SearchBar";
-import { Filters, QuickChips, SortSelect } from "@/features/search/Filters";
+import { Filters, SortSelect } from "@/features/search/Filters";
 import { ResultCard } from "@/features/search/ResultCard";
 import { MapCard } from "@/features/search/MapCard";
 import { NearMeButton } from "@/features/search/NearMeButton";
-import { ViewSwitch } from "@/features/search/ViewSwitch";
 import { ViewToggle } from "@/features/search/ViewToggle";
 import { SearchSplit } from "@/features/search/SearchSplit";
+import { MapOverlayHost } from "@/features/search/MapOverlayHost";
 import { SearchMapView } from "@/features/search/SearchMapView";
 import { LocalLink } from "@/shared/components/LocalLink";
 import { isLocale } from "@/i18n/config";
@@ -51,25 +51,22 @@ export default async function SearchPage({
     />
   );
 
-  // Map mode (the Booking.com pattern): a full-screen takeover with the list beside the map and a way back.
-  if (mapMode) {
-    const nights = p.stayType === "overnight" ? ` – ${formatDate(p.checkOut, true, locale)}` : "";
-    return (
-      <>
-      <SearchMapView
-        items={items} query={carry} stayType={p.stayType} foreigner={p.foreigner} boundsOn={Boolean(p.bounds)}
-        closeQuery={toQueryString({ ...p, view: "split", bounds: undefined })}
-        summary={`${p.place || t("search.anywhere")} · ${formatDate(p.checkIn, true, locale)}${nights} · ${guestSummaryText(t, p.adults + p.children, p.rooms)}`}
-        summaryPlace={p.place || t("search.anywhere")}
-        summaryWhen={`${formatDate(p.checkIn, true, locale)}${nights} · ${p.adults + p.children === 1 ? t("guests.guestOne") : t("guests.guestMany", { n: p.adults + p.children })}`}
-        searchBar={searchBar}
-        filters={<Filters params={p} inline />}
-        sheet={<><Filters params={p} sheetOnly /><QuickChips params={p} className="basis-full" /></>}
-        controls={<><SortSelect params={p} />{p.near ? null : <NearMeButton active={false} />}</>}
-      />
-      </>
-    );
-  }
+  // The full-screen map (the Booking.com pattern) is an overlay on the same page: opening and closing it never reloads the results.
+  const nights = p.stayType === "overnight" ? ` – ${formatDate(p.checkOut, true, locale)}` : "";
+  const overlay = (
+    <SearchMapView
+      items={items} query={carry} stayType={p.stayType} foreigner={p.foreigner} boundsOn={Boolean(p.bounds)}
+      closeQuery={toQueryString({ ...p, view: "split", bounds: undefined })}
+      summary={`${p.place || t("search.anywhere")} · ${formatDate(p.checkIn, true, locale)}${nights} · ${guestSummaryText(t, p.adults + p.children, p.rooms)}`}
+      summaryPlace={p.place || t("search.anywhere")}
+      summaryWhen={`${formatDate(p.checkIn, true, locale)}${nights} · ${p.adults + p.children === 1 ? t("guests.guestOne") : t("guests.guestMany", { n: p.adults + p.children })}`}
+      searchBar={searchBar}
+      filters={<Filters params={p} inline />}
+      sheet={<Filters params={p} sheetOnly />}
+      controls={<><SortSelect params={p} />{p.near ? null : <NearMeButton active={false} />}</>}
+    />
+  );
+  const withMap = (page: React.ReactNode) => <MapOverlayHost initialOpen={mapMode} overlay={overlay}>{page}</MapOverlayHost>;
 
   const title = `${p.place ? t("search.titlePlace", { place: p.place }) : t("search.title")} · ${t(items.length === 1 ? "search.countOne" : "search.count", { n: items.length })}`;
   const empty = {
@@ -79,7 +76,7 @@ export default async function SearchPage({
 
   // Grid and list: results across the full width, no map. Same search bar, filters and switch as the split view.
   if (p.view === "grid" || p.view === "list") {
-    return (
+    return withMap(
       <>
         <div className="relative z-30 border-b lg:hidden border-border-subtle bg-surface-brand-subtle px-4 py-2 sm:px-6 md:px-8 lg:py-3">
           {searchBar}
@@ -92,12 +89,10 @@ export default async function SearchPage({
               {datesRepaired ? <StatusBanner tone="warning" className="mt-3 hidden lg:block">{t("search.datesRepaired")}</StatusBanner> : null}
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <ViewSwitch params={p} locale={locale} />
-              <ViewToggle params={p} locale={locale} current="list" className="lg:fixed lg:bottom-6 lg:left-1/2 lg:z-30 lg:-translate-x-1/2" />
+              <ViewToggle params={p} locale={locale} current="list" className="fixed bottom-5 left-1/2 z-30 -translate-x-1/2 lg:bottom-6" />
               <div className="lg:hidden"><Filters params={p} sheetOnly count={items.length} /></div>
             </div>
           </div>
-          <QuickChips params={p} className="mb-5" />
           <div className="mb-6 hidden lg:block"><Filters params={p} inline /></div>
           {items.length === 0 ? (
             <EmptyState title={empty.title} body={empty.body} action={empty.action} />
@@ -107,19 +102,19 @@ export default async function SearchPage({
             </ul>
           )}
         </section>
-      </>
+      </>,
     );
   }
 
-  return (
+  return withMap(
     <>
       <SearchSplit
         items={items} query={carry} stayType={p.stayType} foreigner={p.foreigner} title={title} mapQuery={mapQuery} searchBar={searchBar} inlineFilters={<Filters params={p} inline />}
         viewToggle={<ViewToggle params={p} locale={locale} current="map" className="lg:absolute lg:bottom-6 lg:left-1/2 lg:z-10 lg:-translate-x-1/2" />}
         notice={datesRepaired ? <StatusBanner tone="warning" className="mt-3">{t("search.datesRepaired")}</StatusBanner> : null}
-        controls={<><ViewSwitch params={p} locale={locale} /><Filters params={p} sheetOnly count={items.length} /><QuickChips params={p} className="basis-full" /></>}
+        controls={<Filters params={p} sheetOnly count={items.length} />}
         empty={empty}
       />
-    </>
+    </>,
   );
 }

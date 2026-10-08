@@ -8,8 +8,10 @@ import { formatKs } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { LocalLink } from "@/shared/components/LocalLink";
 import type { StaySummary } from "@/services/stays.service";
+import { Header } from "@/shared/components/Header";
 import { EmptyState } from "@/shared/ui/States";
 import { ResultCard } from "./ResultCard";
+import { useMapOverlay } from "./MapOverlayHost";
 import { StayMap, type Bounds, type MapPin } from "./StayMap";
 
 interface Props {
@@ -54,6 +56,7 @@ export function SearchMapView({ items, query, stayType, foreigner, closeQuery, b
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const root = useRef<HTMLDivElement>(null);
   const [closing, setClosing] = useState(false);
+  const overlay = useMapOverlay();
   // Phones show the chosen stay as a card at the bottom; wide screens keep the popup on the pin.
   const [wide, setWide] = useState(true);
   useEffect(() => {
@@ -120,12 +123,13 @@ export function SearchMapView({ items, query, stayType, foreigner, closeQuery, b
   }
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  // Closing plays a short exit animation first, then navigates. With reduced motion it is instant.
+  // Closing plays a short exit animation first, then hides the map in place. With reduced motion it is instant.
+  const leave = () => { if (overlay) overlay.hide(); else router.push(`/${locale}/search?${closeQuery}`); };
   const close = () => {
     if (closing) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { router.push(`/${locale}/search?${closeQuery}`); return; }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { leave(); return; }
     setClosing(true);
-    setTimeout(() => router.push(`/${locale}/search?${closeQuery}`), 210);
+    setTimeout(leave, 210);
   };
   const onCloseClick = (e: React.MouseEvent) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; e.preventDefault(); close(); };
   const closeRef = useRef(close);
@@ -169,20 +173,24 @@ export function SearchMapView({ items, query, stayType, foreigner, closeQuery, b
 
   return (
     <div ref={root} role="region" aria-label={t("map.fullscreen")} className={`fixed inset-0 z-[1000] flex flex-col bg-surface-page ${closing ? "anim-map-out" : "anim-map-in"}`}>
+      {/* Phones: the same top nav as the list (logo, notifications, language, account), so the map is not a dead end. */}
+      <div className="shrink-0 lg:hidden"><Header /></div>
       {/* Small screens keep a slim bar so Close map is always reachable. On wide screens Close and the search-as-you-move control float over the map. */}
       <header className="flex flex-col gap-3 border-b border-border-subtle bg-surface-page px-3 pb-3 pt-3 lg:hidden">
         {searchBar}
         <div className="flex flex-wrap items-center gap-2">
-          <LocalLink
-            href={`/search?${closeQuery}`} onClick={onCloseClick}
-            className="type-label inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full border border-border-control bg-surface-raised px-4 shadow-raised transition-colors hover:bg-surface-subtle"
-          >
-            <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" /></svg>
-            {t("map.viewList")}
-          </LocalLink>
           <div>{sheet}</div>
         </div>
       </header>
+
+      {/* Phones: the way back to the list is one pill at the bottom centre, the same place as "Show map" on the list. */}
+      <LocalLink
+        href={`/search?${closeQuery}`} onClick={onCloseClick}
+        className="type-label absolute bottom-5 left-1/2 z-[600] inline-flex min-h-12 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-text-primary px-5 text-surface-raised shadow-high lg:hidden"
+      >
+        <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.500 6h.01M3.500 12h.01M3.500 18h.01" /></svg>
+        {t("view.showList")}
+      </LocalLink>
 
       <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(22rem,30rem)_minmax(0,1fr)]">
         <section aria-label={t("search.results")} className={`${pane === "map" ? "hidden lg:flex" : "flex anim-pane"} anim-list-in min-h-0 flex-col overflow-y-auto border-border-subtle bg-surface-raised p-3 lg:border-r`}>

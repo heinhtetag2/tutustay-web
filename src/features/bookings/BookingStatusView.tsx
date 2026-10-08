@@ -87,7 +87,8 @@ export function BookingStatusView({ booking }: { booking: Booking }) {
             </div>
           ) : null}
 
-          {canCancelInApp(booking) ? <div className="mt-4"><CancelBookingDialog booking={booking} /></div> : null}
+          {/* Phones: the price is in the bottom sheet, so the cancel button stays here. Wide screens have it beside the price. */}
+          {canCancelInApp(booking) ? <div className="mt-4 lg:hidden"><CancelBookingDialog booking={booking} /></div> : null}
 
           {booking.status === "rejected" || booking.status === "cancelled" ? (
             <div className="mt-4"><LinkButton href={`/search?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}`} variant="secondary">{t("status.findSimilar")}</LinkButton></div>
@@ -139,11 +140,20 @@ export function BookingStatusView({ booking }: { booking: Booking }) {
         </section>
       </div>
 
-      <aside aria-label={t("review.summary")} className="hidden h-fit rounded-card border border-border-subtle bg-surface-raised p-5 shadow-raised lg:sticky lg:top-6 lg:block">
-        <h2 className="type-subheading mb-3">{t("status.price")}</h2>
-        <PriceBreakdown price={booking.price} showNext={!final} />
-        <LocalLink href="/account/bookings" className="type-label mt-4 inline-block text-text-link">{t("nav.myBookings")}</LocalLink>
-      </aside>
+      <div className="hidden h-fit flex-col gap-4 lg:sticky lg:top-6 lg:flex">
+        <aside aria-label={t("review.summary")} className="rounded-card border border-border-subtle bg-surface-raised p-5 shadow-raised">
+          <h2 className="type-subheading mb-3">{t("status.price")}</h2>
+          <PriceBreakdown price={booking.price} showNext={!final} />
+          <LocalLink href="/account/bookings" className="type-label mt-4 inline-block text-text-link">{t("nav.myBookings")}</LocalLink>
+        </aside>
+        {canCancelInApp(booking) ? (
+          <div className="rounded-card border border-border-subtle bg-surface-raised p-5">
+            <h2 className="type-subheading">{t("cancel.sideTitle")}</h2>
+            <p className="type-body-sm mb-3 mt-1 text-text-secondary">{t("cancel.sideBody")}</p>
+            <CancelBookingDialog booking={booking} />
+          </div>
+        ) : null}
+      </div>
 
       {/* Phones: the price opens from a slim bar at the bottom instead of sitting at the very end of a long page. */}
       <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border-subtle bg-surface-raised px-[var(--gutter)] py-3 lg:hidden">

@@ -513,6 +513,8 @@ export const en = {
   "status.contactAfter": "Questions about this booking? You can still contact the hotel.",
   "status.contactTitle": "Cancel or change",
   "status.call": "Call {phone}",
+  "cancel.sideTitle": "Need to cancel?",
+  "cancel.sideBody": "Nothing has been paid yet, so you can cancel for free.",
   "cancel.action": "Cancel booking",
   "cancel.title": "Cancel this booking?",
   "cancel.body": "The property releases your rooms as soon as you confirm, and this booking cannot be reopened. You are free to book again at any time.",
