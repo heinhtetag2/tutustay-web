@@ -13,10 +13,10 @@ export const FINAL_STATUSES: BookingStatus[] = ["rejected", "cancelled", "comple
  * Allowed moves. Source: Terms §04. Inferences are marked:
  *  - overdue → confirmed: Terms says an overdue room "is still held, but at risk", so late payment can still confirm.
  *  - accepted → completed: [assumption] pay-at-hotel stays have no online payment, so they go accepted → completed.
- *  - pending has no cancel: Terms lists cancellation only for "accepted, overdue, or confirmed" bookings.
+ *  - pending → cancelled: [product decision] a guest can withdraw a request that nobody has accepted or paid yet (the Terms list cancellation only for accepted, overdue or confirmed bookings).
  */
 const TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
-  pending: ["accepted", "rejected"],
+  pending: ["accepted", "rejected", "cancelled"],
   accepted: ["confirmed", "overdue", "cancelled", "completed"],
   confirmed: ["cancelled", "completed"],
   overdue: ["confirmed", "cancelled"],
@@ -82,14 +82,27 @@ export interface Booking {
   couponCode?: string;
   refundable: boolean;
   price: PriceBreakdown;
+  /** Set when the guest cancels. The reason is optional. */
+  cancellation?: { reason?: CancelReason; at: string };
 }
 
 /**
  * Cancellation is arranged by phone with the hotel, which sets its own refund rules (Terms §05).
- * There is deliberately no in-app cancel action. This says which route applies.
+ * In-app cancel exists only while nothing has been paid (see canCancelInApp). This says which route applies once money has moved.
  */
+export type CancelReason = "plans_changed" | "dates_changed" | "found_other" | "mistake" | "other";
+export const CANCEL_REASONS: CancelReason[] = ["plans_changed", "dates_changed", "found_other", "mistake", "other"];
+
+/**
+ * A guest can cancel in the app while nothing has been paid: a request, or an accepted/overdue booking waiting for the deposit.
+ * Once money has moved (confirmed), cancelling and refunds go through the hotel.
+ */
+export function canCancelInApp(b: Pick<Booking, "status">): boolean {
+  return b.status === "pending" || b.status === "accepted" || b.status === "overdue";
+}
+
 export type CancellationRoute = "call_hotel" | "not_applicable";
 
 export function cancellationRoute(status: BookingStatus): CancellationRoute {
-  return status === "accepted" || status === "overdue" || status === "confirmed" ? "call_hotel" : "not_applicable";
+  return status === "confirmed" ? "call_hotel" : "not_applicable";
 }

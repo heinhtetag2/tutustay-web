@@ -86,8 +86,11 @@ export function Header() {
           <Suspense fallback={null}><LanguageSwitcher pillCls={pill} /></Suspense>
           {!session ? (
             <div className="hidden items-center gap-2 lg:flex">
-              <button type="button" onClick={() => openAuthDialog()} className={`type-label min-h-10 cursor-pointer whitespace-nowrap rounded-full px-4 transition-colors ${overHero ? "hover:bg-[#ffffff33]" : "text-text-primary hover:bg-surface-subtle"}`}>{t("nav.signIn")}</button>
-              <LocalLink href="/signup" className="type-label inline-flex min-h-10 items-center whitespace-nowrap rounded-full bg-text-primary px-5 text-surface-raised transition-opacity hover:opacity-85">{t("signup.title")}</LocalLink>
+              {/* One entry point: the dialog covers both signing in and creating an account. */}
+              <button type="button" onClick={() => openAuthDialog()} className={`${pill} gap-2 whitespace-nowrap px-4`}>
+                <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+                {t("nav.signInOrUp")}
+              </button>
             </div>
           ) : null}
           <div ref={menuRef} className={`relative ${!session ? "lg:hidden" : ""}`}>
@@ -113,8 +116,7 @@ export function Header() {
                   </>
                 ) : (
                   <>
-                    <button type="button" onClick={() => { setOpen(false); openAuthDialog(); }} className={`${item} w-full cursor-pointer text-left font-semibold`}>{t("nav.signIn")}</button>
-                    <LocalLink href="/signup" className={item}>{t("signup.title")}</LocalLink>
+                    <button type="button" onClick={() => { setOpen(false); openAuthDialog(); }} className={`${item} w-full cursor-pointer text-left font-semibold`}>{t("nav.signInOrUp")}</button>
                   </>
                 )}
               </div>

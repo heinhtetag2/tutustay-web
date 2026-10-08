@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { addDays, formatDate, isValidStayRange, type SessionHours, type StayType } from "@/domain";
+import { addDays, formatDate, isValidStayRange, type PropertyCategory, type SessionHours, type StayType } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { GuestPicker, type GuestState } from "@/shared/components/GuestPicker";
 import { Button } from "@/shared/ui/Button";
@@ -10,6 +10,7 @@ import { Field, Input } from "@/shared/ui/Field";
 import { DateField } from "@/shared/components/DateField";
 import { PlaceCombobox } from "./PlaceCombobox";
 import { MobileSearchSheet } from "./MobileSearchSheet";
+import { PropertyTypeMenu } from "./PropertyTypeMenu";
 import { StayTypeMenu } from "./StayTypeMenu";
 import { toQueryString, type SearchParams } from "@/validation/search";
 
@@ -40,6 +41,8 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
     rooms: initial.rooms,
     foreigner: initial.foreigner,
   });
+  // Only the home search picks a property type here; the other bars keep whatever type the results page already has.
+  const [category, setCategory] = useState<PropertyCategory | undefined>();
   const [error, setError] = useState<string>();
   const [open] = useState(variant !== "summary");
   const [sheet, setSheet] = useState(false);
@@ -61,7 +64,7 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
       return false;
     }
     setError(undefined);
-    const qs = toQueryString({ ...preserve, place: place.trim(), checkIn, checkOut: out, ...guests, ...stay, ...extra });
+    const qs = toQueryString({ ...preserve, ...(variant === "hero" ? { category } : {}), place: place.trim(), checkIn, checkOut: out, ...guests, ...stay, ...extra });
     router.push(`/${locale}/search${qs ? `?${qs}` : ""}`);
     return true;
   }
@@ -96,6 +99,7 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
   const PIN = ic(<><path d="M12 21s-6.500-5.600-6.500-11a6.500 6.500 0 0 1 13 0C18.500 15.400 12 21 12 21Z" /><circle cx="12" cy="10" r="2.300" /></>);
   const CAL = ic(<><rect x="4" y="5" width="16" height="15" rx="2.500" /><path d="M8 3v4M16 3v4M4 10h16" /></>);
   const BED = ic(<path d="M3 19v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M3 16h18M7 9V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2" />);
+  const BLD = ic(<><path d="M5 21V4.500A1.500 1.500 0 0 1 6.500 3h11A1.500 1.500 0 0 1 19 4.500V21M3 21h18" /><path d="M9 7.500h1.500M13.500 7.500H15M9 11.500h1.500M13.500 11.500H15" /></>);
   const WHO = ic(<><circle cx="9" cy="8" r="3.500" /><path d="M2.500 20a6.500 6.500 0 0 1 13 0M16 4.500a3.500 3.500 0 0 1 0 7M18 20a6.500 6.500 0 0 0-3-5.500" /></>);
 
   const guestTotal = guests.adults + guests.children;
@@ -123,7 +127,7 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
       ) : null}
 
       <div className={`${variant === "summary" && !open ? "hidden lg:block" : ""} ${variant === "summary" ? "px-4 pb-4 pt-1 lg:p-0" : ""}`}>
-        <div className={`search-pill grid gap-4 ${variant === "header" ? "lg:mx-auto lg:w-[min(42rem,100%)] lg:focus-within:w-[min(72rem,100%)] lg:has-[details[open]]:w-[min(72rem,100%)] lg:grid-cols-[1.3fr_1fr_0.85fr_0.85fr_1.5fr_auto] lg:py-0.5 lg:pl-2 lg:pr-1.5" : variant === "hero" ? "lg:grid-cols-[1.6fr_1fr_0.85fr_0.85fr_1.45fr_auto] lg:py-2 lg:pl-3 lg:pr-2" : "lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_auto] lg:py-2 lg:pl-3 lg:pr-2"} lg:items-center lg:gap-0 lg:rounded-full lg:border lg:border-border-subtle lg:bg-surface-raised lg:border-[#e5e5e5] lg:shadow-[0_2px_4px_#14141420] lg:hover:shadow-[0_4px_12px_#14141429]
+        <div className={`search-pill grid gap-4 ${variant === "header" ? "lg:mx-auto lg:w-[min(42rem,100%)] lg:focus-within:w-[min(72rem,100%)] lg:has-[details[open]]:w-[min(72rem,100%)] lg:grid-cols-[1.3fr_1fr_0.85fr_0.85fr_1.5fr_auto] lg:py-0.5 lg:pl-2 lg:pr-1.5" : variant === "hero" ? "lg:grid-cols-[1.35fr_0.95fr_1fr_0.8fr_0.8fr_1.3fr_auto] lg:py-2 lg:pl-3 lg:pr-2" : "lg:grid-cols-[1.4fr_1fr_1fr_1.2fr_auto] lg:py-2 lg:pl-3 lg:pr-2"} lg:items-center lg:gap-0 lg:rounded-full lg:border lg:border-border-subtle lg:bg-surface-raised lg:border-[#e5e5e5] lg:shadow-[0_2px_4px_#14141420] lg:hover:shadow-[0_4px_12px_#14141429]
           lg:[&>*:not(:last-child)]:relative lg:[&>*:not(:last-child)]:after:absolute lg:[&>*:not(:last-child)]:after:right-0 lg:[&>*:not(:last-child)]:after:top-1/2 lg:[&>*:not(:last-child)]:after:h-6 lg:[&>*:not(:last-child)]:after:w-px lg:[&>*:not(:last-child)]:after:-translate-y-1/2 lg:[&>*:not(:last-child)]:after:bg-border-subtle lg:[&>*:not(:last-child)]:px-4 lg:[&>div]:gap-0.5
           lg:[&_label]:text-xs lg:[&_label]:font-semibold lg:[&_span.type-label]:text-xs lg:[&_span.type-label]:font-semibold
           lg:[&_input]:min-h-0 lg:[&_input]:border-0 lg:[&_input]:bg-transparent lg:[&_input]:p-0 lg:[&_input]:text-sm! lg:[&_input]:font-medium! lg:[&_input]:leading-5! lg:[&_input]:text-text-primary
@@ -135,6 +139,7 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
             )}
           </Field>)}
           {rich ? seg(BED, <div className="flex flex-col gap-2"><span className="type-label">{t("stayType.label")}</span><StayTypeMenu value={stay} onChange={setStay} /></div>) : null}
+          {variant === "hero" ? seg(BLD, <div className="flex flex-col gap-2"><span className="type-label">{t("filter.category")}</span><PropertyTypeMenu value={category} onChange={setCategory} /></div>) : null}
           {seg(CAL, <Field label={overnight ? t("search.checkIn") : t("search.date")}>
             {({ id }) => <DateField id={id} label={overnight ? t("search.checkIn") : t("search.date")} kind={overnight ? "in" : "single"} checkIn={checkIn} checkOut={checkOut} min={today} onPick={(r) => { setCheckIn(r.checkIn); setCheckOut(r.checkOut); }} />}
           </Field>, overnight ? "" : "lg:col-span-2")}

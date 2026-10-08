@@ -27,6 +27,7 @@ export const sessionStore = createLocalStore<MockSession | null>("session", null
 
 export function signIn(session: MockSession): void {
   sessionStore.set(session);
+  deactivatedStore.set(null); // signing in again reactivates a deactivated account
 }
 
 export function requestDeletion(): void {
@@ -35,5 +36,18 @@ export function requestDeletion(): void {
 }
 
 export function signOut(): void {
+  sessionStore.set(null);
+}
+
+/** MOCK: changes the email on the signed-in account. The real flow sends a code to the new address first. */
+export function changeEmail(email: string): void {
+  const s = sessionStore.get();
+  if (s) sessionStore.set({ ...s, email });
+}
+
+/** MOCK deactivation: the account is hidden, nothing is deleted, and signing in again brings it back. */
+export const deactivatedStore = createLocalStore<{ at: string } | null>("deactivated", null);
+export function deactivateAccount(): void {
+  deactivatedStore.set({ at: new Date().toISOString() });
   sessionStore.set(null);
 }

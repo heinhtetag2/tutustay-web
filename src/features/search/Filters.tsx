@@ -31,7 +31,7 @@ const ChipIcon = ({ name }: { name: keyof typeof CHIP_ICON }) => (
 );
 
 /** Filters apply live (replace URL). On small screens they sit in a disclosure sheet. */
-export function Filters({ params, sheetOnly = false, sidebar = false, inline = false, count }: { params: SearchParams; sheetOnly?: boolean; sidebar?: boolean; inline?: boolean; count?: number }) {
+export function Filters({ params, sheetOnly = false, inline = false, count }: { params: SearchParams; sheetOnly?: boolean; inline?: boolean; count?: number }) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -54,7 +54,7 @@ export function Filters({ params, sheetOnly = false, sidebar = false, inline = f
   const clearAll = () => apply({ category: undefined, minPrice: undefined, maxPrice: undefined, minRating: undefined, refundable: false, facilities: [], roomFacilities: [], beds: [], popular: false, bookable: false, coupons: false });
 
   const body = (
-    <div className={sidebar ? "flex flex-col gap-5 [&>*]:border-b [&>*]:border-border-subtle [&>*]:pb-5 [&>*:last-child]:border-b-0" : "flex flex-col gap-6"}>
+    <div className="flex flex-col gap-6">
       {/* The stay type lives in the search bar and the property type menu above the results, not in this panel. */}
       {inline ? null : (<>
       <fieldset className="flex flex-col gap-3">
@@ -152,16 +152,6 @@ export function Filters({ params, sheetOnly = false, sidebar = false, inline = f
         </details>
         {active > 0 ? <button type="button" onClick={clearAll} className={`${pill} inline-flex items-center gap-1.5 border-transparent bg-surface-raised text-text-link`}><ChipIcon name="clear" />{t("filter.clear")}</button> : null}
       </div>
-    );
-  }
-
-  // Booking.com-style flat column for the full-screen map: heading, then sections divided by lines. Scrolls with its parent.
-  if (sidebar) {
-    return (
-      <aside aria-label={t("filter.title")} className="p-4">
-        <h2 className="type-subheading mb-4">{t("filter.by")}</h2>
-        {body}
-      </aside>
     );
   }
 

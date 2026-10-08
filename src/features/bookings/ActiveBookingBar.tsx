@@ -35,7 +35,7 @@ export function ActiveBookingBar() {
   const pay = waiting.d.kind === "pay";
 
   return (
-    <div role="status" className="fixed inset-x-4 bottom-20 z-30 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-[22rem] lg:bottom-5">
+    <div role="status" className="fixed bottom-20 left-4 right-[4.5rem] z-30 sm:left-auto sm:bottom-5 sm:right-24 sm:w-[22rem] lg:bottom-5">
       <div className="flex items-center gap-3 rounded-card border border-border-subtle bg-surface-raised p-3 pr-2 shadow-high">
         <span aria-hidden className={`flex size-11 shrink-0 items-center justify-center rounded-full ${pay ? "bg-[#fef3c7] text-[#92400e]" : "bg-surface-brand-subtle text-text-brand"}`}>
           <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.500 1.500M9 2.500h6" /></svg>

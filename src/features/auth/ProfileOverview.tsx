@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { formatDate, formatKs } from "@/domain";
 import { LOCALE_LABEL } from "@/i18n/config";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { bookingsStore } from "@/services/bookings.service";
 import { sessionLabel } from "@/services/auth.service";
 import { claimedCouponsStore, favoritesStore } from "@/services/preferences.service";
-import { defaultName, profileStore } from "@/services/profile.service";
+import { defaultName, profileStore, type Gender } from "@/services/profile.service";
 import { submittedReviewsStore } from "@/services/reviews.service";
 import { stayCover } from "@/features/stay-detail/photos";
 import { StatusBadge } from "@/features/bookings/StatusBadge";
@@ -19,6 +19,36 @@ import { Button, LinkButton } from "@/shared/ui/Button";
 import { Field, Input, Select } from "@/shared/ui/Field";
 import { PhotoTile } from "@/shared/ui/PhotoTile";
 import { EmptyState } from "@/shared/ui/States";
+
+const GENDERS: Gender[] = ["male", "female", "other", "none"];
+
+/** Shrinks a picked image to a small square data URL, so it is cheap to keep in the browser. */
+function toAvatar(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const size = 256;
+      const side = Math.min(img.width, img.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { URL.revokeObjectURL(url); reject(new Error("no canvas")); return; }
+      ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("bad image")); };
+    img.src = url;
+  });
+}
+
+/** The latest date of birth that is still 16 or older (Terms: you must be at least 16). */
+function latestBirthDate(): string {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 16);
+  return d.toISOString().slice(0, 10);
+}
 
 const COUNTRIES = ["MM", "TH", "SG", "CN", "JP", "KR", "IN", "US", "GB", "AU"];
 
@@ -41,14 +71,28 @@ export function ProfileOverview() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(profile);
   const [done, setDone] = useState(false);
+  const [photoError, setPhotoError] = useState(false);
+  const [dobError, setDobError] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const name = profile.name || defaultName(session?.email, session?.phone);
   const country = profile.country ?? "MM";
   const initial = (name || "?").trim().charAt(0).toUpperCase();
   const recent = useMemo(() => bookings.slice(0, 3), [bookings]);
 
-  const startEdit = () => { setDraft({ name, phone: profile.phone ?? session?.phone ?? "", country, nrc: profile.nrc ?? "", address: profile.address ?? "" }); setDone(false); setEditing(true); };
-  const save = () => { profileStore.set({ ...draft, name: draft.name?.trim() ?? "", phone: draft.phone?.trim() ?? "", nrc: draft.nrc?.trim() ?? "", address: draft.address?.trim() ?? "" }); setEditing(false); setDone(true); };
+  const startEdit = () => { setDraft({ name, phone: profile.phone ?? session?.phone ?? "", country, nrc: profile.nrc ?? "", address: profile.address ?? "", gender: profile.gender, dob: profile.dob ?? "", altPhone: profile.altPhone ?? "" }); setDone(false); setDobError(false); setEditing(true); };
+  const pickPhoto = async (file?: File) => {
+    if (!file) return;
+    setPhotoError(false);
+    try { profileStore.set({ ...profileStore.get(), photo: await toAvatar(file) }); } catch { setPhotoError(true); }
+    if (fileInput.current) fileInput.current.value = "";
+  };
+  const save = () => {
+    if (draft.dob && draft.dob > latestBirthDate()) { setDobError(true); return; }
+    setDobError(false);
+    profileStore.set({ ...profile, ...draft, name: draft.name?.trim() ?? "", phone: draft.phone?.trim() ?? "", altPhone: draft.altPhone?.trim() ?? "", nrc: draft.nrc?.trim() ?? "", address: draft.address?.trim() ?? "" });
+    setEditing(false); setDone(true);
+  };
 
   const fact = (label: string, value: string) => (
     <div className="min-w-0">
@@ -85,12 +129,26 @@ export function ProfileOverview() {
         {done ? <p role="status" className="type-body-sm mt-2 rounded-field bg-success-bg px-3 py-2 text-success-text">{t("profile.saved")}</p> : null}
 
         <div className="mt-5 flex flex-col gap-6 sm:flex-row">
-          <span aria-hidden className="flex size-16 shrink-0 items-center justify-center rounded-full bg-surface-brand-subtle text-2xl font-semibold text-text-brand sm:size-28 sm:text-4xl">{initial}</span>
+          <div className="flex shrink-0 flex-col items-center gap-2 sm:w-32">
+            {profile.photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.photo} alt="" className="size-16 rounded-full object-cover sm:size-28" />
+            ) : (
+              <span aria-hidden className="flex size-16 items-center justify-center rounded-full bg-surface-brand-subtle text-2xl font-semibold text-text-brand sm:size-28 sm:text-4xl">{initial}</span>
+            )}
+            <input ref={fileInput} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-label={t("profile.changePhoto")} onChange={(e) => void pickPhoto(e.target.files?.[0])} />
+            <button type="button" onClick={() => fileInput.current?.click()} className="type-body-sm cursor-pointer text-text-link underline-offset-4 hover:underline">{t(profile.photo ? "profile.changePhoto" : "profile.addPhoto")}</button>
+            {profile.photo ? <button type="button" onClick={() => profileStore.set({ ...profile, photo: undefined })} className="type-body-sm cursor-pointer text-text-secondary underline-offset-4 hover:underline">{t("profile.removePhoto")}</button> : null}
+            {photoError ? <p role="alert" className="type-body-sm text-error-text">{t("profile.photoError")}</p> : null}
+          </div>
           {!editing ? (
             <dl className="grid flex-1 gap-x-8 gap-y-5 sm:grid-cols-2 xl:grid-cols-3">
               {fact(t("profile.name"), name)}
               {fact(t("profile.email"), session?.email ?? "")}
+              {fact(t("profile.gender"), profile.gender ? t(`profile.gender.${profile.gender}`) : "")}
+              {fact(t("profile.dob"), profile.dob ? formatDate(profile.dob, false, locale) : "")}
               {fact(t("profile.phone"), profile.phone || session?.phone || "")}
+              {fact(t("profile.altPhone"), profile.altPhone ?? "")}
               {fact(t("profile.country"), countryName(country, locale))}
               {fact(t("profile.nrc"), profile.nrc ?? "")}
               {fact(t("profile.address"), profile.address ?? "")}
@@ -101,7 +159,19 @@ export function ProfileOverview() {
             <form className="grid flex-1 gap-4 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); save(); }}>
               <Field label={t("profile.name")}>{({ id }) => <Input id={id} value={draft.name ?? ""} autoComplete="name" onChange={(e) => setDraft({ ...draft, name: e.target.value })} />}</Field>
               <Field label={t("profile.email")} hint={session ? t("profile.signInMethod", { method: session.method }) : undefined}>{({ id, describedBy }) => <Input id={id} aria-describedby={describedBy} value={session?.email ?? ""} disabled readOnly />}</Field>
+              <Field label={t("profile.gender")}>
+                {({ id }) => (
+                  <Select id={id} value={draft.gender ?? ""} onChange={(e) => setDraft({ ...draft, gender: (e.target.value || undefined) as Gender | undefined })}>
+                    <option value="">{t("profile.notSet")}</option>
+                    {GENDERS.map((g) => <option key={g} value={g}>{t(`profile.gender.${g}`)}</option>)}
+                  </Select>
+                )}
+              </Field>
+              <Field label={t("profile.dob")} error={dobError ? t("err.age") : undefined}>
+                {({ id, describedBy, invalid }) => <Input id={id} type="date" max={latestBirthDate()} value={draft.dob ?? ""} aria-describedby={describedBy} invalid={invalid} autoComplete="bday" onChange={(e) => { setDobError(false); setDraft({ ...draft, dob: e.target.value }); }} />}
+              </Field>
               <Field label={t("profile.phone")}>{({ id }) => <Input id={id} type="tel" inputMode="tel" autoComplete="tel" value={draft.phone ?? ""} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />}</Field>
+              <Field label={t("profile.altPhone")} hint={t("flow.optionalHint")}>{({ id, describedBy }) => <Input id={id} type="tel" inputMode="tel" aria-describedby={describedBy} value={draft.altPhone ?? ""} onChange={(e) => setDraft({ ...draft, altPhone: e.target.value })} />}</Field>
               <Field label={t("profile.country")}>
                 {({ id }) => (
                   <Select id={id} value={draft.country ?? "MM"} onChange={(e) => setDraft({ ...draft, country: e.target.value, nrc: "" })}>
@@ -123,20 +193,6 @@ export function ProfileOverview() {
           )}
         </div>
         <p className="type-body-sm mt-5 text-text-secondary">{t("account.mock")}</p>
-
-        <div className="relative mt-5 flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-card border border-[#bae6fd] bg-gradient-to-br from-[#e0f2fe] via-[#f0f9ff] to-surface-raised p-5">
-          <svg aria-hidden viewBox="0 0 24 24" className="pointer-events-none absolute -right-4 -top-6 size-32 text-brand opacity-[0.07]" fill="currentColor"><path d="m12 2 2.400 6.600L21 11l-6.600 2.400L12 20l-2.400-6.600L3 11l6.600-2.400Z" /></svg>
-          <div className="relative flex items-center gap-4">
-            <span aria-hidden className="flex size-12 shrink-0 items-center justify-center rounded-full bg-surface-raised text-text-brand shadow-card ring-1 ring-[#bae6fd]">
-              <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M12 8v13M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7M7.500 8a2.500 2.500 0 0 1 0-5C11 3 12 8 12 8s1-5 4.500-5a2.500 2.500 0 0 1 0 5" /></svg>
-            </span>
-            <div>
-              <p className="type-subheading">{t("profile.rewards")}</p>
-              <p className="type-body-sm mt-0.5 max-w-md text-text-secondary">{t("profile.rewardsBody")}</p>
-            </div>
-          </div>
-          <LinkButton href="/account/promo-codes?tab=all" className="relative">{t("profile.browseDeals")}</LinkButton>
-        </div>
       </section>
 
       <section aria-labelledby="as" className={card}>

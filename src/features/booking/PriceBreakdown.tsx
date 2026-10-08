@@ -10,7 +10,7 @@ import { cn } from "@/shared/lib/cn";
  * Shows the whole stay, fees included, and splits PAY NOW from PAY AT PROPERTY.
  * ASSUMPTION: fee and deposit values are mock (docs/04 Q1, Q8).
  */
-export function PriceBreakdown({ price, className }: { price: Breakdown; className?: string }) {
+export function PriceBreakdown({ price, className, showNext = true }: { price: Breakdown; className?: string; /** The "what happens next" line. Off for bookings that are finished. */ showNext?: boolean }) {
   const t = useT();
   const row = "flex items-baseline justify-between gap-4";
   return (
@@ -46,7 +46,7 @@ export function PriceBreakdown({ price, className }: { price: Breakdown; classNa
           <dd className="type-price-sm">{formatKs(price.payAtProperty)}</dd>
         </div>
       </dl>
-      <p className="type-body-sm text-text-secondary">{t(price.mode === "pay_at_hotel" ? "price.next.cash" : "price.next.deposit")}</p>
+      {showNext ? <p className="type-body-sm text-text-secondary">{t(price.mode === "pay_at_hotel" ? "price.next.cash" : "price.next.deposit")}</p> : null}
     </div>
   );
 }

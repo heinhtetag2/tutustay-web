@@ -53,7 +53,7 @@ export function BookingList() {
         <div role="tabpanel"><ul className="flex flex-col gap-3">
           {shown.map((b) => (
             <li key={b.ref}>
-              <LocalLink href={`/bookings/${b.ref}`} className="group flex items-center gap-4 rounded-card border border-border-subtle bg-surface-raised p-3 shadow-card transition-shadow hover:shadow-raised sm:p-4">
+              <LocalLink href={`/bookings/${b.ref}`} className="group flex items-center gap-4 rounded-card border border-border-subtle bg-surface-raised p-3 transition-colors hover:border-text-primary sm:p-4">
                 <PhotoTile src={stayCover(b.stayId)} alt="" className="size-20 shrink-0 rounded-field sm:size-24" />
                 <div className="min-w-0 flex-1">
                   <p className="type-subheading truncate">{b.stayName}</p>

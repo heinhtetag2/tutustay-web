@@ -35,7 +35,7 @@ export default async function PartnersPage({ params }: { params: Promise<{ local
           <ol className="grid gap-8 md:grid-cols-3 md:gap-0">
             {steps.map((s) => (
               <li key={s} className="flex flex-col items-center gap-4 text-center md:px-4">
-                <div aria-hidden className="flex w-full items-center gap-3">
+                <div aria-hidden className="flex w-full items-center justify-center gap-3">
                   <span className={`hidden h-px flex-1 md:block ${s === "1" ? "" : "bg-border-control"}`} />
                   <span className="type-label flex size-10 shrink-0 items-center justify-center rounded-full bg-action-cta text-text-on-action">{s}</span>
                   <span className={`hidden h-px flex-1 md:block ${s === "3" ? "" : "bg-border-control"}`} />

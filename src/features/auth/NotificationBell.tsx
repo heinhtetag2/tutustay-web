@@ -43,7 +43,7 @@ export function NotificationBell({ pillCls = "" }: { pillCls?: string }) {
         {unread ? <span aria-hidden className="absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-error-text px-1 text-xs font-semibold leading-5 text-surface-raised">{unread}</span> : null}
       </button>
       {open ? (
-        <div className="absolute right-0 z-20 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-card border border-border-subtle bg-surface-raised text-text-primary shadow-raised">
+        <div className="fixed inset-x-4 top-20 z-40 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:z-20 sm:mt-2 sm:w-[22rem] rounded-card border border-border-subtle bg-surface-raised text-text-primary shadow-raised">
           <div className="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
             <h2 className="type-label font-semibold">{t("account.nav.notifications")}</h2>
             <button type="button" disabled={unread === 0} onClick={() => readNotificationsStore.set(all.map((n) => n.id))} className="type-body-sm cursor-pointer text-text-brand disabled:cursor-default disabled:text-text-muted">{t("notif.markAll")}</button>

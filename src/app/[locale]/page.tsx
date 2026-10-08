@@ -1,6 +1,6 @@
 import { type CSSProperties, type ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { distanceKm, formatKs, todayIso, type PropertyCategory } from "@/domain";
+import { distanceKm, formatKs, todayIso } from "@/domain";
 import { AppSection } from "@/features/home/AppAndPartnerSections";
 import { HeroCarousel } from "@/features/home/HeroCarousel";
 import { HowItWorks } from "@/features/home/HowItWorks";
@@ -15,12 +15,10 @@ import { listPlaces, searchStays } from "@/services/stays.service";
 import { LocalLink } from "@/shared/components/LocalLink";
 import { Container, Section } from "@/shared/layout/Container";
 import { LinkButton } from "@/shared/ui/Button";
-import { CategoryIcon3D } from "@/shared/ui/CategoryIcon3D";
 import { PhotoTile } from "@/shared/ui/PhotoTile";
 import { parseSearchParams, toQueryString } from "@/validation/search";
 
 const DEMO_LOCATION = { lat: 16.8, lng: 96.15 };
-const CATEGORIES: PropertyCategory[] = ["hotel", "motel", "resort", "campsite"];
 /** One photo per property type that looks like the type (hotel lobby, inn entrance, resort pool, tent), rather than the first stay's cover. */
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -65,38 +63,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       <Container size="wide">
         <Section>
-          <div className="rounded-card bg-surface-brand-subtle p-6 md:p-10">
-          <div className="mb-6"><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.byType")}</h2></div>
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
-            {CATEGORIES.map((c, i) => {
-              const group = items.filter((x) => x.stay.category === c);
-              if (group.length === 0) return null;
-              const from = Math.min(...group.map((x) => x.fromRate ?? Infinity));
-              return (
-                <li key={c} className="anim-rise" style={{ "--i": i } as CSSProperties}>
-                  <LocalLink href={`/search?category=${c}`} className="group flex items-center gap-4 rounded-card border border-border-subtle bg-surface-raised p-4 transition-colors hover:border-text-primary hover:bg-surface-subtle">
-                    <CategoryIcon3D name={c} className="size-14 shrink-0 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105" />
-                    <span className="min-w-0">
-                      <span className="type-subheading block">{t(`category.${c}`)}</span>
-                      <span className="type-body-sm block text-text-secondary">{t(group.length === 1 ? "search.countOne" : "search.count", { n: group.length })}</span>
-                      {Number.isFinite(from) ? <span className="type-body-sm block whitespace-nowrap text-text-secondary">{t("home.fromNight", { price: formatKs(from) })}</span> : null}
-                    </span>
-                  </LocalLink>
-                </li>
-              );
-            })}
-          </ul>
-          </div>
-        </Section>
-
-        <Section>
           <div className="mb-4 flex items-end justify-between gap-4">
             <div><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.places")}</h2></div>
             <LocalLink href="/destinations" className="type-label inline-flex min-h-11 shrink-0 items-center text-text-link hover:underline">{t("home.allPlaces")} →</LocalLink>
           </div>
-          <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <ul className="no-scrollbar -mx-[var(--gutter)] flex snap-x snap-mandatory scroll-px-[var(--gutter)] gap-3 overflow-x-auto px-[var(--gutter)] pb-2 md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 xl:grid-cols-5">
             {places.slice(0, 5).map((x) => (
-              <li key={x.name}>
+              <li key={x.name} className="w-[58%] shrink-0 snap-start sm:w-[42%] md:w-auto">
                 <LocalLink href={`/search?place=${encodeURIComponent(x.name)}`} className="group relative block aspect-[3/4] overflow-hidden rounded-card bg-surface-subtle shadow-[0_2px_12px_#0000001a] transition-shadow hover:shadow-[0_8px_24px_#00000033]">
                   <PhotoTile src={stayCover(x.coverStayId)} alt="" className="absolute inset-0 size-full transition-transform duration-500 group-hover:scale-105" />
                   <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#000000cc] via-[#00000033] to-transparent" />
@@ -113,7 +86,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
         <Section>
           <div className="mb-4 flex items-end justify-between gap-4"><div><span aria-hidden className="mb-2 block h-1 w-10 rounded-full bg-text-brand" /><h2 className="type-heading">{t("home.featured")}</h2></div><LocalLink href="/search" className="type-label inline-flex min-h-11 shrink-0 items-center text-text-link hover:underline">{t("nav.allStays")} →</LocalLink></div>
-          <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <ul className="no-scrollbar -mx-[var(--gutter)] flex snap-x snap-mandatory scroll-px-[var(--gutter)] gap-4 overflow-x-auto px-[var(--gutter)] pb-2 [&>li]:w-[78%] [&>li]:shrink-0 [&>li]:snap-start sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 sm:overflow-visible sm:px-0 sm:pb-0 sm:[&>li]:w-auto lg:grid-cols-3 xl:grid-cols-4">
             {featured.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={carry} stayType="overnight" foreigner={false} layout="card" />)}
           </ul>
         </Section>
@@ -128,7 +101,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </div>
               <LocalLink href="/search?popular=true" className="type-label inline-flex min-h-11 shrink-0 items-center text-text-link hover:underline">{t("nav.allStays")} →</LocalLink>
             </div>
-            <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <ul className="no-scrollbar -mx-[var(--gutter)] flex snap-x snap-mandatory scroll-px-[var(--gutter)] gap-4 overflow-x-auto px-[var(--gutter)] pb-2 [&>li]:w-[78%] [&>li]:shrink-0 [&>li]:snap-start sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 sm:overflow-visible sm:px-0 sm:pb-0 sm:[&>li]:w-auto lg:grid-cols-3 xl:grid-cols-4">
               {mostPopular.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={carry} stayType="overnight" foreigner={false} layout="card" />)}
             </ul>
           </Section>
@@ -145,7 +118,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </div>
               <LocalLink href="/search" className="type-label inline-flex min-h-11 shrink-0 items-center text-text-link hover:underline">{t("nav.allStays")} →</LocalLink>
             </div>
-            <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <ul className="no-scrollbar -mx-[var(--gutter)] flex snap-x snap-mandatory scroll-px-[var(--gutter)] gap-4 overflow-x-auto px-[var(--gutter)] pb-2 [&>li]:w-[78%] [&>li]:shrink-0 [&>li]:snap-start sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-10 sm:overflow-visible sm:px-0 sm:pb-0 sm:[&>li]:w-auto lg:grid-cols-3 xl:grid-cols-4">
               {nearby.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query={carry} stayType="overnight" foreigner={false} layout="card" />)}
             </ul>
             </div>

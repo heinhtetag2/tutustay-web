@@ -21,7 +21,8 @@ interface Props {
   closeQuery: string;
   boundsOn: boolean;
   /** Wide screens: the filter column. */
-  sidebar: React.ReactNode;
+  /** The floating filter pills over the map (wide screens). */
+  filters: React.ReactNode;
   /** Smaller screens: the Filters button and panel. */
   sheet: React.ReactNode;
   /** Sort and "Stay near you". */
@@ -40,7 +41,7 @@ interface Props {
  * Selecting a pin highlights its card and the other way round. "Update results when map moves" searches the visible area.
  * Small screens show the list OR the map, with a toggle.
  */
-export function SearchMapView({ items, query, stayType, foreigner, closeQuery, boundsOn, sidebar, sheet, controls, summary, searchBar }: Props) {
+export function SearchMapView({ items, query, stayType, foreigner, closeQuery, boundsOn, filters, sheet, controls, summary, searchBar }: Props) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -179,16 +180,15 @@ export function SearchMapView({ items, query, stayType, foreigner, closeQuery, b
             <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" /></svg>
             {t("map.viewList")}
           </LocalLink>
-          <div className="xl:hidden">{sheet}</div>
+          <div>{sheet}</div>
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(22rem,30rem)_minmax(0,1fr)] xl:grid-cols-[17.5rem_minmax(24rem,29rem)_minmax(0,1fr)]">
-        <div className="anim-list-in hidden min-h-0 overflow-y-auto border-r border-border-subtle bg-surface-raised xl:block">{sidebar}</div>
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(22rem,30rem)_minmax(0,1fr)]">
         <section aria-label={t("search.results")} className={`${pane === "map" ? "hidden lg:flex" : "flex anim-pane"} anim-list-in min-h-0 flex-col overflow-y-auto border-border-subtle bg-surface-raised p-3 lg:border-r`}>
           <div className="mb-3 flex flex-col gap-3">
             <div><h1 className="type-subheading">{t(items.length === 1 ? "search.countOne" : "search.count", { n: items.length })}</h1><p className="type-body-sm hidden text-text-secondary lg:block">{summary}</p></div>
-            <div className="flex flex-wrap items-start gap-3"><div className="xl:hidden">{sheet}</div>{controls}</div>
+            <div className="flex flex-wrap items-start gap-3"><div className="lg:hidden">{sheet}</div>{controls}</div>
           </div>
           {items.length === 0 ? (
             <EmptyState title={t("search.empty.title")} body={t(boundsOn ? "map.empty.area" : "search.empty.filters")} />
@@ -213,6 +213,7 @@ export function SearchMapView({ items, query, stayType, foreigner, closeQuery, b
             <input type="checkbox" checked={follow} onChange={(e) => toggleFollow(e.target.checked)} className="size-5 accent-[var(--action-primary)]" />
             {t("map.update")}
           </label>
+          <div className="absolute left-3 right-48 top-[4.25rem] z-[500] hidden lg:block">{filters}</div>
           <LocalLink href={`/search?${closeQuery}`} onClick={onCloseClick} className="type-label absolute right-3 top-3 z-[500] hidden min-h-11 items-center gap-2 rounded-control bg-surface-raised px-4 shadow-raised hover:bg-surface-subtle lg:inline-flex">
             {t("map.close")} <span aria-hidden>✕</span>
           </LocalLink>

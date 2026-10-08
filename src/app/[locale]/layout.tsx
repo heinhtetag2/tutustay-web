@@ -1,3 +1,4 @@
+import { ChatBot } from "@/features/help/ChatBot";
 import type { Metadata } from "next";
 import { DM_Sans, Noto_Sans_KR, Noto_Sans_Myanmar } from "next/font/google";
 import { notFound } from "next/navigation";
@@ -43,6 +44,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
           <AuthDialog />
           <ActiveBookingBar />
           <FeedbackDialog />
+          <ChatBot />
         </I18nProvider>
       </body>
     </html>

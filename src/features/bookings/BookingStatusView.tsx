@@ -1,6 +1,7 @@
 "use client";
 
-import { cancellationRoute, formatDate, needsOnlinePayment, type Booking, type BookingStatus } from "@/domain";
+import { useRef } from "react";
+import { canCancelInApp, formatKs, cancellationRoute, formatDate, needsOnlinePayment, type Booking, type BookingStatus } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { PriceBreakdown } from "@/features/booking/PriceBreakdown";
 import { bookingDeadline, nextStatuses, transitionBooking } from "@/services/bookings.service";
@@ -8,6 +9,7 @@ import { LocalLink } from "@/shared/components/LocalLink";
 import { PaymentModeBadge } from "@/shared/components/PaymentModeBadge";
 import { Button, LinkButton } from "@/shared/ui/Button";
 import { formatCountdown, useCountdown } from "@/shared/hooks/useCountdown";
+import { CancelBookingDialog } from "./CancelBookingDialog";
 import { ReviewForm } from "./ReviewForm";
 import { StatusBadge } from "./StatusBadge";
 
@@ -57,16 +59,18 @@ export function BookingStatusView({ booking }: { booking: Booking }) {
   const t = useT();
   const locale = useLocale();
   const overnight = booking.stayType === "overnight";
+  const sheet = useRef<HTMLDialogElement>(null);
   const mustPay = needsOnlinePayment(booking);
+  const final = booking.status === "cancelled" || booking.status === "rejected" || booking.status === "completed";
   const route = cancellationRoute(booking.status);
   const left = minutesLeft(booking.payBy);
-  const bodyKey = (booking.status === "accepted" ? `status.body.accepted.${booking.mode}` : `status.body.${booking.status}`) as "status.body.pending";
+  const bodyKey = (booking.status === "accepted" ? `status.body.accepted.${booking.mode}` : booking.status === "cancelled" && booking.cancellation ? "status.body.cancelledUnpaid" : `status.body.${booking.status}`) as "status.body.pending";
   const next = nextStatuses(booking);
   const deadline = bookingDeadline(booking);
   const timeLeft = useCountdown(deadline?.at ?? null);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
+    <div className="grid gap-8 pb-24 lg:grid-cols-[minmax(0,1fr)_380px] lg:pb-0">
       <div className="flex flex-col gap-6">
         <StatusHero booking={booking} body={t(bodyKey)} timeLeft={timeLeft} deadline={deadline} />
         <div className="rounded-card border border-border-subtle bg-surface-raised p-5">
@@ -83,6 +87,8 @@ export function BookingStatusView({ booking }: { booking: Booking }) {
             </div>
           ) : null}
 
+          {canCancelInApp(booking) ? <div className="mt-4"><CancelBookingDialog booking={booking} /></div> : null}
+
           {booking.status === "rejected" || booking.status === "cancelled" ? (
             <div className="mt-4"><LinkButton href={`/search?checkIn=${booking.checkIn}&checkOut=${booking.checkOut}`} variant="secondary">{t("status.findSimilar")}</LinkButton></div>
           ) : null}
@@ -98,14 +104,21 @@ export function BookingStatusView({ booking }: { booking: Booking }) {
             <div><dt className="type-label">{t("stayType.label")}</dt><dd>{t(`stayType.${booking.stayType}`)}{booking.sessionHours ? ` · ${t("stayType.hours", { n: booking.sessionHours })}` : ""}</dd></div>
             <div><dt className="type-label">{t("status.guest")}</dt><dd>{booking.guest.bookingForOther ? t("status.forOther", { name: booking.guest.stayingGuestName ?? "" }) : booking.guest.name}</dd></div>
             <div><dt className="type-label">{t("status.payment")}</dt><dd><PaymentModeBadge mode={booking.mode} /></dd></div>
+            {booking.cancellation?.reason ? <div><dt className="type-label">{t("cancel.reasonLabel")}</dt><dd>{t(`cancel.reason.${booking.cancellation.reason}`)}</dd></div> : null}
             {booking.couponCode ? <div><dt className="type-label">{t("coupon.title")}</dt><dd>{booking.couponCode}</dd></div> : null}
           </dl>
         </section>
 
         <section className="rounded-card border border-border-subtle bg-surface-raised p-5" aria-labelledby="contact">
-          <h2 id="contact" className="type-heading mb-2">{t("status.contactTitle")}</h2>
-          <p className="type-body text-text-secondary">{t(route === "call_hotel" ? "cancel.byPhone" : "cancel.notNow")}</p>
-          <p className="type-body-sm mt-2 text-text-secondary">{t(booking.refundable ? "policy.cancel.refundable" : "policy.cancel.nonRefundable")} {t("cancel.hotelRules")}</p>
+          <h2 id="contact" className="type-heading mb-2">{t(final ? "status.contactAfterTitle" : "status.contactTitle")}</h2>
+          {final ? (
+            <p className="type-body text-text-secondary">{t("status.contactAfter")}</p>
+          ) : (
+            <>
+              <p className="type-body text-text-secondary">{t(route === "call_hotel" ? "cancel.byPhone" : canCancelInApp(booking) ? "cancel.inApp" : "cancel.notNow")}</p>
+              <p className="type-body-sm mt-2 text-text-secondary">{t(booking.refundable ? "policy.cancel.refundable" : "policy.cancel.nonRefundable")} {t("cancel.hotelRules")}</p>
+            </>
+          )}
           <a href={`tel:${booking.stayPhone.replace(/\s/g, "")}`} className="type-label mt-4 inline-flex min-h-11 items-center rounded-control border border-border-control px-4 hover:bg-surface-subtle"><svg aria-hidden viewBox="0 0 24 24" className="mr-2 size-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" /></svg>
             {t("status.call", { phone: booking.stayPhone })}
           </a>
@@ -125,11 +138,38 @@ export function BookingStatusView({ booking }: { booking: Booking }) {
         </section>
       </div>
 
-      <aside aria-label={t("review.summary")} className="h-fit rounded-card border border-border-subtle bg-surface-raised p-5 shadow-raised lg:sticky lg:top-6">
+      <aside aria-label={t("review.summary")} className="hidden h-fit rounded-card border border-border-subtle bg-surface-raised p-5 shadow-raised lg:sticky lg:top-6 lg:block">
         <h2 className="type-subheading mb-3">{t("status.price")}</h2>
-        <PriceBreakdown price={booking.price} />
+        <PriceBreakdown price={booking.price} showNext={!final} />
         <LocalLink href="/account/bookings" className="type-label mt-4 inline-block text-text-link">{t("nav.myBookings")}</LocalLink>
       </aside>
+
+      {/* Phones: the price opens from a slim bar at the bottom instead of sitting at the very end of a long page. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border-subtle bg-surface-raised px-[var(--gutter)] py-3 lg:hidden">
+        <div className="min-w-0">
+          <p className="type-body-sm text-text-secondary">{t("price.total")}</p>
+          <p className="type-price-md">{formatKs(booking.price.total)}</p>
+        </div>
+        <Button type="button" variant="secondary" aria-haspopup="dialog" onClick={() => sheet.current?.showModal()}>
+          {t("status.price")}
+          <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 15 6-6 6 6" /></svg>
+        </Button>
+      </div>
+      <dialog
+        ref={sheet} aria-label={t("status.price")}
+        onClick={(e) => { if (e.target === sheet.current) sheet.current?.close(); }}
+        className="sheet-up fixed inset-x-0 bottom-0 top-auto m-0 max-h-[88dvh] w-full max-w-none overflow-hidden rounded-t-sheet bg-surface-raised p-0 text-text-primary shadow-high backdrop:bg-black/50 lg:hidden"
+      >
+        <div className="flex items-center justify-between px-5 pt-4">
+          <h2 className="type-heading">{t("status.price")}</h2>
+          <button type="button" aria-label={t("common.close")} onClick={() => sheet.current?.close()} className="inline-flex size-11 cursor-pointer items-center justify-center rounded-full hover:bg-surface-subtle">
+            <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+        <div className="max-h-[calc(88dvh-4.5rem)] overflow-y-auto px-5 pb-6 pt-3">
+          <PriceBreakdown price={booking.price} showNext={!final} />
+        </div>
+      </dialog>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { LocalLink } from "../components/LocalLink";
 import { cn } from "../lib/cn";
 
-type Variant = "primary" | "cta" | "secondary" | "ghost";
+type Variant = "primary" | "cta" | "secondary" | "ghost" | "danger";
 type Size = "md" | "lg";
 
 const base =
@@ -15,6 +15,8 @@ const variants: Record<Variant, string> = {
   cta: "bg-action-cta text-text-on-action hover:bg-action-cta-hover active:bg-action-cta-hover",
   secondary: "border border-text-primary bg-surface-raised text-text-primary hover:bg-surface-subtle",
   ghost: "text-text-link hover:bg-surface-brand-subtle",
+  /** A destructive step that cannot be undone, such as cancelling a booking. */
+  danger: "bg-error-text text-text-on-action hover:opacity-90",
 };
 const sizes: Record<Size, string> = { md: "min-h-11 rounded-control px-4", lg: "min-h-12 rounded-full px-6 text-[16px]" };
 

@@ -62,8 +62,8 @@ export default async function StayRoomsPage({ params, searchParams }: Props) {
   const selectable: SelectableRoom[] = all
     .map((r) => ({ id: r.id, name: r.name, rate: rateFor(r, p.stayType, guestType), available: r.availableCount, capacity: r.capacity }))
     .filter((r): r is SelectableRoom => r.rate !== null && r.available > 0);
-  const summary = (className?: string) => (
-    <RoomSelectionSummary stayId={id} rooms={selectable} nights={nights} stayType={p.stayType} mode={stay.payment.mode} depositPct={stay.payment.depositPct} guests={p.adults + p.children} query={query} className={className} />
+  const summary = (className?: string, showAction = true) => (
+    <RoomSelectionSummary showAction={showAction} stayId={id} rooms={selectable} nights={nights} stayType={p.stayType} mode={stay.payment.mode} depositPct={stay.payment.depositPct} guests={p.adults + p.children} query={query} className={className} />
   );
 
   return (
@@ -98,13 +98,13 @@ export default async function StayRoomsPage({ params, searchParams }: Props) {
               ))}
             </ul>
           )}
-          <div className="rounded-card border border-border-subtle bg-surface-raised p-5 lg:hidden">{summary()}</div>
+          <div className="rounded-card border border-border-subtle bg-surface-raised p-5 lg:hidden">{summary(undefined, false)}</div>
         </section>
 
         <BookingCard params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} reserveHref={null} footer={summary()} />
       </div>
 
-      <StayBookingBar params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} />
+      <StayBookingBar params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} action={<RoomSelectionSummary variant="bar" stayId={id} rooms={selectable} nights={nights} stayType={p.stayType} mode={stay.payment.mode} depositPct={stay.payment.depositPct} guests={p.adults + p.children} query={query} />} />
     </Container>
   );
 }

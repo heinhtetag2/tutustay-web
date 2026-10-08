@@ -18,7 +18,7 @@ export function Breadcrumbs({ crumbs, current, future = [] }: { crumbs: { href: 
         ))}
         <li aria-current="page" className="min-w-0 truncate px-1 font-medium text-text-primary">{current}</li>
         {future.map((label) => (
-          <li key={label} className="flex min-w-0 items-center gap-1 text-text-disabled">
+          <li key={label} className="hidden min-w-0 items-center gap-1 text-text-disabled sm:flex">
             <svg aria-hidden viewBox="0 0 24 24" className="size-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6" /></svg>
             <span className="min-w-0 truncate px-1">{label}</span>
           </li>

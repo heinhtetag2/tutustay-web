@@ -3,8 +3,8 @@ import type { Locale } from "@/i18n/config";
 import { createT } from "@/i18n/translate";
 import { AmenityIcon } from "@/shared/ui/AmenityIcon";
 import { Badge } from "@/shared/ui/Badge";
-import { PhotoTile } from "@/shared/ui/PhotoTile";
-import { roomCover } from "./photos";
+import { roomPhotos } from "./photos";
+import { RoomPhotos } from "./RoomPhotos";
 import { RoomPrice } from "./RoomPrice";
 import { RoomQuantity } from "./RoomQuantity";
 
@@ -34,7 +34,7 @@ export function RoomCard({ room, locale, stayId, checkIn, checkOut, selected, st
   return (
     <li className="rounded-card border border-border-subtle bg-surface-raised p-4 transition-colors duration-200 hover:border-text-primary md:p-5">
       <div className="flex gap-4">
-        <PhotoTile src={roomCover(stayId, room.id)} alt={room.name} className="size-24 shrink-0 rounded-field md:size-32" />
+        <RoomPhotos photos={roomPhotos(stayId, room.id)} name={room.name} className="size-32 md:size-48" />
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           <div>
             <h3 className="type-subheading">{room.name}</h3>

@@ -63,7 +63,7 @@ export default async function SearchPage({
         summaryPlace={p.place || t("search.anywhere")}
         summaryWhen={`${formatDate(p.checkIn, true, locale)}${nights} · ${p.adults + p.children === 1 ? t("guests.guestOne") : t("guests.guestMany", { n: p.adults + p.children })}`}
         searchBar={searchBar}
-        sidebar={<Filters params={p} sidebar />}
+        filters={<Filters params={p} inline />}
         sheet={<Filters params={p} sheetOnly />}
         controls={<><SortSelect params={p} />{p.near ? null : <NearMeButton active={false} />}</>}
       />

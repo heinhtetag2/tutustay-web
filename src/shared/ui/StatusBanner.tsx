@@ -11,11 +11,15 @@ const styles: Record<Exclude<Tone, "neutral" | "promo">, string> = {
 const icons = { info: "i", success: "✓", warning: "!", error: "×" } as const;
 
 export function StatusBanner({
-  tone = "info", title, children, className,
-}: { tone?: keyof typeof styles; title?: string; children?: ReactNode; className?: string }) {
+  tone = "info", title, children, className, icon,
+}: { tone?: keyof typeof styles; title?: string; children?: ReactNode; className?: string; /** Replaces the default round symbol. */ icon?: ReactNode }) {
   return (
     <div role={tone === "error" || tone === "warning" ? "alert" : "status"} className={cn("flex gap-3 rounded-field p-4", styles[tone], className)}>
-      <span aria-hidden className="type-label mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-current">{icons[tone]}</span>
+      {icon ? (
+        <span aria-hidden className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center">{icon}</span>
+      ) : (
+        <span aria-hidden className="type-label mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-current">{icons[tone]}</span>
+      )}
       <div className="type-body-sm text-text-primary">
         {title ? <p className="type-label" style={{ color: "inherit" }}>{title}</p> : null}
         {children}

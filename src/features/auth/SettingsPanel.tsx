@@ -4,7 +4,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { LOCALES, LOCALE_LABEL } from "@/i18n/config";
 import { useLocale, useT } from "@/i18n/I18nProvider";
-import { DELETION_GRACE_DAYS, requestDeletion, signOut } from "@/services/auth.service";
+import { deactivateAccount, DELETION_GRACE_DAYS, requestDeletion, signOut } from "@/services/auth.service";
+import { useMockSession } from "@/shared/hooks/useMockSession";
+import { AccountCredentials } from "./AccountCredentials";
 import { notificationPrefsStore } from "@/services/profile.service";
 import { LocalLink } from "@/shared/components/LocalLink";
 import { useStore } from "@/shared/hooks/useStore";
@@ -32,7 +34,8 @@ export function SettingsPanel() {
   const pathname = usePathname();
   const search = useSearchParams().toString();
   const prefs = useStore(notificationPrefsStore);
-  const [confirming, setConfirming] = useState(false);
+  const session = useMockSession();
+  const [confirming, setConfirming] = useState<"deactivate" | "delete" | null>(null);
   const rest = pathname.replace(/^\/[^/]+/, "");
   const langs = LOCALES.filter((l) => l !== "ko");
 
@@ -42,6 +45,13 @@ export function SettingsPanel() {
         <h1 className="type-title">{t("account.nav.settings")}</h1>
         <p className="type-body mt-2 text-text-secondary">{t("settings.subtitle")}</p>
       </header>
+
+      {session ? (
+        <section aria-labelledby="st-cred" className={card}>
+          <h2 id="st-cred" className="type-heading mb-4">{t("settings.signIn")}</h2>
+          <AccountCredentials session={session} />
+        </section>
+      ) : null}
 
       <section aria-labelledby="st-lang" className={card}>
         <h2 id="st-lang" className="type-heading">{t("profile.language")}</h2>
@@ -79,19 +89,34 @@ export function SettingsPanel() {
       </section>
 
       <section aria-labelledby="del" className={card}>
-        <h2 id="del" className="type-heading">{t("account.delete.title")}</h2>
-        {!confirming ? (
-          <>
-            <p className="type-body-sm mt-1 text-text-secondary">{t("account.delete.body", { days: DELETION_GRACE_DAYS })}</p>
-            <Button variant="secondary" className="mt-3 border-error-text text-error-text hover:bg-error-bg" onClick={() => setConfirming(true)}>{t("account.delete.start")}</Button>
-          </>
+        <h2 id="del" className="type-heading">{t("account.manage.title")}</h2>
+        {confirming === null ? (
+          <div className="mt-3 flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-field border border-border-subtle p-4">
+              <div className="min-w-0 max-w-md"><p className="type-label">{t("account.deactivate.title")}</p><p className="type-body-sm text-text-secondary">{t("account.deactivate.body")}</p></div>
+              <Button variant="secondary" onClick={() => setConfirming("deactivate")}>{t("account.deactivate.start")}</Button>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-field border border-border-subtle p-4">
+              <div className="min-w-0 max-w-md"><p className="type-label">{t("account.delete.title")}</p><p className="type-body-sm text-text-secondary">{t("account.delete.body", { days: DELETION_GRACE_DAYS })}</p></div>
+              <Button variant="secondary" className="border-error-text text-error-text hover:bg-error-bg" onClick={() => setConfirming("delete")}>{t("account.delete.start")}</Button>
+            </div>
+          </div>
+        ) : confirming === "deactivate" ? (
+          <div role="alertdialog" aria-labelledby="deact-q" className="mt-3 flex flex-col gap-3">
+            <p id="deact-q" className="type-body">{t("account.deactivate.confirmQ")}</p>
+            <StatusBanner tone="info">{t("account.deactivate.consequence")}</StatusBanner>
+            <div className="flex flex-wrap gap-3">
+              <Button onClick={() => { deactivateAccount(); router.push(`/${locale}`); }}>{t("account.deactivate.confirm")}</Button>
+              <Button variant="secondary" onClick={() => setConfirming(null)}>{t("account.delete.keep")}</Button>
+            </div>
+          </div>
         ) : (
           <div role="alertdialog" aria-labelledby="del-q" className="mt-3 flex flex-col gap-3">
             <p id="del-q" className="type-body">{t("account.delete.confirmQ")}</p>
             <StatusBanner tone="warning">{t("account.delete.consequence", { days: DELETION_GRACE_DAYS })}</StatusBanner>
             <div className="flex flex-wrap gap-3">
-              <Button className="bg-error-text text-surface-raised hover:bg-error-text hover:opacity-90 active:bg-error-text" onClick={() => { requestDeletion(); router.push(`/${locale}/login`); }}>{t("account.delete.confirm")}</Button>
-              <Button variant="secondary" onClick={() => setConfirming(false)}>{t("account.delete.keep")}</Button>
+              <Button variant="danger" onClick={() => { requestDeletion(); router.push(`/${locale}/login`); }}>{t("account.delete.confirm")}</Button>
+              <Button variant="secondary" onClick={() => setConfirming(null)}>{t("account.delete.keep")}</Button>
             </div>
           </div>
         )}

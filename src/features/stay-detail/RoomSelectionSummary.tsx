@@ -21,10 +21,14 @@ interface Props {
   /** Search state carried into the booking step (dates, guests, stay type). */
   query: string;
   className?: string;
+  /** `bar`: just the button, for the bottom bar on phones. */
+  variant?: "card" | "bar";
+  /** Off for the copy on phones: the bottom bar already has the button. */
+  showAction?: boolean;
 }
 
 /** What has been picked, the total, and the one button that moves on. A booking can hold several rooms, so the button lives here and not on a room. */
-export function RoomSelectionSummary({ stayId, rooms, nights, stayType, mode, depositPct, guests, query, className }: Props) {
+export function RoomSelectionSummary({ stayId, rooms, nights, stayType, mode, depositPct, guests, query, className, variant = "card", showAction = true }: Props) {
   const t = useT();
   const search = useSearchParams();
   const sel = parseSelection(search.get("sel") ?? undefined);
@@ -36,6 +40,14 @@ export function RoomSelectionSummary({ stayId, rooms, nights, stayType, mode, de
     ? computePrice({ unitRate: 0, nights, rooms: 1, stayType, mode, depositPct, rules: ASSUMED_PRICING_RULES, items: chosen.map((r) => ({ label: r.name, unitRate: r.rate, rooms: r.qty })) })
     : null;
   const href = `/stays/${stayId}/book?${query}&sel=${serializeSelection(Object.fromEntries(chosen.map((r) => [r.id, r.qty])))}`;
+
+  if (variant === "bar") {
+    return count > 0 && !tooSmall ? (
+      <LocalLink href={href} className="type-label inline-flex min-h-11 shrink-0 items-center rounded-control bg-action-cta px-5 text-text-on-action">{t("room.continueShort", { n: count })}</LocalLink>
+    ) : (
+      <span aria-disabled="true" className="type-label inline-flex min-h-11 shrink-0 items-center rounded-control bg-surface-subtle px-5 text-text-secondary">{t("room.selectToContinue")}</span>
+    );
+  }
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
@@ -62,11 +74,11 @@ export function RoomSelectionSummary({ stayId, rooms, nights, stayType, mode, de
           {tooSmall ? <p role="alert" className="type-body-sm text-error-text">{t("room.tooSmall", { guests, capacity })}</p> : null}
         </>
       )}
-      {count > 0 && !tooSmall ? (
+      {showAction ? (count > 0 && !tooSmall ? (
         <LocalLink href={href} className="type-label inline-flex min-h-12 items-center justify-center rounded-full bg-action-cta px-6 text-text-on-action hover:bg-action-cta-hover">{t("room.continue", { n: count })}</LocalLink>
       ) : (
         <span aria-disabled="true" className="type-label inline-flex min-h-12 cursor-not-allowed items-center justify-center rounded-full bg-surface-subtle px-6 text-text-secondary">{t("room.continue", { n: count })}</span>
-      )}
+      )) : null}
       <p className="type-body-sm text-center text-text-secondary">{t("booking.nothingChargedYet")}</p>
     </div>
   );

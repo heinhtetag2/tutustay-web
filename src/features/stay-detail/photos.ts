@@ -103,3 +103,8 @@ export function roomCover(stayId: string, roomId: string): string | undefined {
   const first = MEDIA[stayId]?.rooms[roomId]?.[0];
   return first ? src(first) : undefined;
 }
+
+/** Every photo of a room type, for the picture strip on room cards. Empty when the room has no photos yet. */
+export function roomPhotos(stayId: string, roomId: string): string[] {
+  return (MEDIA[stayId]?.rooms[roomId] ?? []).map(src);
+}

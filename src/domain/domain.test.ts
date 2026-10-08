@@ -92,7 +92,7 @@ describe("booking lifecycle (Terms §04)", () => {
     expect(canTransition("pending", "accepted")).toBe(true);
     expect(canTransition("pending", "rejected")).toBe(true);
     expect(canTransition("pending", "confirmed")).toBe(false); // nothing is held before the hotel accepts
-    expect(canTransition("pending", "cancelled")).toBe(false); // Terms: cancellation applies to accepted, overdue, confirmed
+    expect(canTransition("pending", "cancelled")).toBe(true); // a guest can withdraw a request nobody has accepted yet
     expect(canTransition("accepted", "confirmed")).toBe(true);
     expect(canTransition("accepted", "overdue")).toBe(true);
     expect(canTransition("overdue", "confirmed")).toBe(true);
@@ -105,8 +105,8 @@ describe("booking lifecycle (Terms §04)", () => {
     }
   });
   it("cancellation is by phone with the hotel, only once the hotel has accepted", () => {
-    expect(cancellationRoute("accepted")).toBe("call_hotel");
-    expect(cancellationRoute("overdue")).toBe("call_hotel");
+    expect(cancellationRoute("accepted")).toBe("not_applicable"); // cancelled in the app while nothing is paid
+    expect(cancellationRoute("overdue")).toBe("not_applicable");
     expect(cancellationRoute("confirmed")).toBe("call_hotel");
     expect(cancellationRoute("pending")).toBe("not_applicable");
     expect(cancellationRoute("completed")).toBe("not_applicable");

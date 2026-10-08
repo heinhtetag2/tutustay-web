@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { addDays, formatDate, isValidStayRange, nightsBetween, type SessionHours, type StayType } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { GuestPicker, type GuestState } from "@/shared/components/GuestPicker";
@@ -35,6 +35,7 @@ export function BookingCard({ params, today, offered, fromRate, soldOut, session
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const sel = useSearchParams().get("sel");
   const [error, setError] = useState<string>();
   const overnight = params.stayType === "overnight";
 
@@ -47,7 +48,8 @@ export function BookingCard({ params, today, offered, fromRate, soldOut, session
     }
     setError(undefined);
     const qs = toQueryString({ ...next, checkOut: out });
-    router.replace(`${pathname}?${qs}`, { scroll: false });
+    // Keep the rooms already picked: changing the rate type, dates or guests must not wipe them.
+    router.replace(`${pathname}?${qs}${sel ? `${qs ? "&" : ""}sel=${encodeURIComponent(sel)}` : ""}`, { scroll: false });
   };
 
   const guests: GuestState = { adults: params.adults, children: params.children, rooms: params.rooms, foreigner: params.foreigner };

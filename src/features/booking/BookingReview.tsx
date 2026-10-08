@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   applyCoupon, computePrice, formatDate, formatKs, INITIAL_STATUS, nightsBetween, rateFor,
   type GuestType, type PaymentMode, type Room, type StayType, type SessionHours,
@@ -13,6 +13,8 @@ import { createBooking } from "@/services/bookings.service";
 import { findCoupon } from "@/services/coupons.service";
 import { guestSummaryText } from "@/shared/lib/guestSummary";
 import { useMockSession } from "@/shared/hooks/useMockSession";
+import { useStore } from "@/shared/hooks/useStore";
+import { profileStore } from "@/services/profile.service";
 import { PaymentModeBadge } from "@/shared/components/PaymentModeBadge";
 import { Button } from "@/shared/ui/Button";
 import { Checkbox, Field, Input, Textarea } from "@/shared/ui/Field";
@@ -44,6 +46,7 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
   const locale = useLocale();
   const router = useRouter();
   const session = useMockSession();
+  const profile = useStore(profileStore);
   const { mode, depositPct } = ctx.stay.payment;
 
   const [name, setName] = useState("");
@@ -58,6 +61,20 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
   const [applied, setApplied] = useState<{ code: string; discount: number } | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
+  const sheet = useRef<HTMLDialogElement>(null);
+
+  // Signed-in guests do not retype what the account already knows. Only empty fields are filled, so nothing typed is overwritten.
+  useEffect(() => {
+    const n = profile.name?.trim();
+    const ph = profile.phone?.trim() || session?.phone;
+    const em = session?.email;
+    if (!n && !ph && !em) return;
+    setName((v) => v || n || "");
+    setPhone((v) => v || ph || "");
+    setEmail((v) => v || em || "");
+    setPrefilled(Boolean(n || ph));
+  }, [profile.name, profile.phone, session?.email, session?.phone]);
   const clear = (k: keyof Errors) => setErrors((e) => (e[k] ? { ...e, [k]: undefined } : e));
 
   const items = ctx.lines.map((l) => ({ label: l.room.name, unitRate: rateFor(l.room, ctx.stayType, ctx.guestType) ?? 0, rooms: l.qty }));
@@ -127,19 +144,42 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
       guest: { name: parsed.data.name, phone: parsed.data.phone, email: parsed.data.email, bookingForOther: parsed.data.bookingForOther, stayingGuestName: parsed.data.stayingGuestName || undefined },
       specialRequests: parsed.data.specialRequests || undefined, couponCode: applied?.code, refundable, price,
     });
+    // Remember the details for next time (only what the account does not have yet).
+    if (!profile.name || !profile.phone) profileStore.set({ ...profile, name: profile.name || parsed.data.name, phone: profile.phone || parsed.data.phone });
     router.push(`/${locale}/bookings/${booking.ref}`);
   }
 
   const dateText = overnight ? `${formatDate(ctx.checkIn, false, locale)} → ${formatDate(ctx.checkOut, false, locale)}` : formatDate(ctx.checkIn, false, locale);
 
+  const summary = (
+    <>
+        <div>
+          <h2 className="type-heading">{ctx.stay.name}</h2>
+          <p className="type-body-sm mt-1 flex items-start gap-1.5 text-text-secondary">
+            <svg aria-hidden viewBox="0 0 24 24" className="mt-0.5 size-4 shrink-0 text-text-brand" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-6.100-7-11.500a7 7 0 0 1 14 0C19 14.900 12 21 12 21Z" /><circle cx="12" cy="9.500" r="2.500" /></svg>
+            <span>{[ctx.stay.place.township, ctx.stay.place.city, ctx.stay.place.region].filter(Boolean).map((x) => dataLabel(locale, x as string)).join(", ")}</span>
+          </p>
+          <ul className="mt-4 flex flex-col gap-0.5">{ctx.lines.map((l) => <li key={l.room.id} className="type-label">{l.qty} × {l.room.name}</li>)}</ul>
+          <p className="type-body-sm mt-1 text-text-secondary">{dateText}</p>
+          <p className="type-body-sm text-text-secondary">
+            {t(`stayType.${ctx.stayType}`)}{ctx.stayType === "session" ? ` · ${t("stayType.hours", { n: ctx.sessionHours })}` : ""} · {t(ctx.guestType === "foreigner" ? "price.foreignerRate" : "price.localRate")}
+          </p>
+          <p className="type-body-sm text-text-secondary">{guestSummaryText(t, ctx.adults + ctx.children, ctx.rooms)}</p>
+        </div>
+        <div><PaymentModeBadge mode={mode} depositPct={depositPct} /></div>
+        <PriceBreakdown price={price} />
+    </>
+  );
+
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
+    <form onSubmit={onSubmit} noValidate className="grid gap-8 pb-24 lg:grid-cols-[minmax(0,1fr)_380px] lg:pb-0">
       <div className="flex flex-col gap-8">
         <section aria-labelledby="who" className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 id="who" className="type-heading">{t("review.who")}</h2>
             <Button type="button" variant="secondary" onClick={fillDemo}>{t("partner.fillDemo")}</Button>
           </div>
+          {prefilled ? <p className="type-body-sm -mt-2 text-text-secondary">{t("review.prefilled")}</p> : null}
           <Field label={t("review.name")} error={errors.name} required>
             {({ id, describedBy, invalid }) => <Input id={id} value={name} autoComplete="name" onChange={(e) => { setName(e.target.value); clear("name"); }} aria-describedby={describedBy} invalid={invalid} />}
           </Field>
@@ -204,23 +244,35 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
         </div>
       </div>
 
-      <aside aria-label={t("review.summary")} className="flex h-fit flex-col gap-4 rounded-card border border-border-subtle bg-surface-raised p-5 shadow-raised lg:sticky lg:top-6">
-        <div>
-          <h2 className="type-heading">{ctx.stay.name}</h2>
-          <p className="type-body-sm mt-1 flex items-start gap-1.5 text-text-secondary">
-            <svg aria-hidden viewBox="0 0 24 24" className="mt-0.5 size-4 shrink-0 text-text-brand" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-6.100-7-11.500a7 7 0 0 1 14 0C19 14.900 12 21 12 21Z" /><circle cx="12" cy="9.500" r="2.500" /></svg>
-            <span>{[ctx.stay.place.township, ctx.stay.place.city, ctx.stay.place.region].filter(Boolean).map((x) => dataLabel(locale, x as string)).join(", ")}</span>
-          </p>
-          <ul className="mt-4 flex flex-col gap-0.5">{ctx.lines.map((l) => <li key={l.room.id} className="type-label">{l.qty} × {l.room.name}</li>)}</ul>
-          <p className="type-body-sm mt-1 text-text-secondary">{dateText}</p>
-          <p className="type-body-sm text-text-secondary">
-            {t(`stayType.${ctx.stayType}`)}{ctx.stayType === "session" ? ` · ${t("stayType.hours", { n: ctx.sessionHours })}` : ""} · {t(ctx.guestType === "foreigner" ? "price.foreignerRate" : "price.localRate")}
-          </p>
-          <p className="type-body-sm text-text-secondary">{guestSummaryText(t, ctx.adults + ctx.children, ctx.rooms)}</p>
-        </div>
-        <div><PaymentModeBadge mode={mode} depositPct={depositPct} /></div>
-        <PriceBreakdown price={price} />
+      {/* Wide screens: the summary sits beside the form. */}
+      <aside aria-label={t("review.summary")} className="hidden h-fit flex-col gap-4 rounded-card border border-border-subtle bg-surface-raised p-5 shadow-raised lg:sticky lg:top-6 lg:flex">
+        {summary}
       </aside>
+
+      {/* Phones: the same summary opens from a slim bar at the bottom, so it is one tap away instead of buried under the form. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border-subtle bg-surface-raised px-[var(--gutter)] py-3 lg:hidden">
+        <div className="min-w-0">
+          <p className="type-body-sm text-text-secondary">{t("price.total")}</p>
+          <p className="type-price-md">{formatKs(price.total)}</p>
+        </div>
+        <Button type="button" variant="secondary" aria-haspopup="dialog" onClick={() => sheet.current?.showModal()}>
+          {t("review.details")}
+          <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 15 6-6 6 6" /></svg>
+        </Button>
+      </div>
+      <dialog
+        ref={sheet} aria-label={t("review.summary")}
+        onClick={(e) => { if (e.target === sheet.current) sheet.current?.close(); }}
+        className="sheet-up fixed inset-x-0 bottom-0 top-auto m-0 max-h-[88dvh] w-full max-w-none overflow-hidden rounded-t-sheet bg-surface-raised p-0 text-text-primary shadow-high backdrop:bg-black/50 lg:hidden"
+      >
+        <div className="flex items-center justify-between px-5 pt-4">
+          <h2 className="type-heading">{t("booking.yourStay")}</h2>
+          <button type="button" aria-label={t("common.close")} onClick={() => sheet.current?.close()} className="inline-flex size-11 cursor-pointer items-center justify-center rounded-full hover:bg-surface-subtle">
+            <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+        <div className="flex max-h-[calc(88dvh-4.5rem)] flex-col gap-4 overflow-y-auto px-5 pb-6 pt-3">{summary}</div>
+      </dialog>
     </form>
   );
 }
