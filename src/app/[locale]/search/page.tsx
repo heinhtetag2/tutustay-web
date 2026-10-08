@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 import { formatDate, todayIso } from "@/domain";
 import { SearchBar } from "@/features/search/SearchBar";
-import { Filters, SortSelect } from "@/features/search/Filters";
+import { Filters } from "@/features/search/Filters";
 import { ResultCard } from "@/features/search/ResultCard";
 import { MapCard } from "@/features/search/MapCard";
-import { NearMeButton } from "@/features/search/NearMeButton";
 import { ViewToggle } from "@/features/search/ViewToggle";
 import { SearchSplit } from "@/features/search/SearchSplit";
 import { MapOverlayHost } from "@/features/search/MapOverlayHost";
@@ -51,24 +50,19 @@ export default async function SearchPage({
     />
   );
 
+  const title = `${p.place ? t("search.titlePlace", { place: p.place }) : t("search.title")} · ${t(items.length === 1 ? "search.countOne" : "search.count", { n: items.length })}`;
   // The full-screen map (the Booking.com pattern) is an overlay on the same page: opening and closing it never reloads the results.
   const nights = p.stayType === "overnight" ? ` – ${formatDate(p.checkOut, true, locale)}` : "";
   const overlay = (
     <SearchMapView
-      items={items} query={carry} stayType={p.stayType} foreigner={p.foreigner} boundsOn={Boolean(p.bounds)}
+      items={items} title={title} query={carry} stayType={p.stayType} foreigner={p.foreigner} boundsOn={Boolean(p.bounds)}
       closeQuery={toQueryString({ ...p, view: "split", bounds: undefined })}
-      summary={`${p.place || t("search.anywhere")} · ${formatDate(p.checkIn, true, locale)}${nights} · ${guestSummaryText(t, p.adults + p.children, p.rooms)}`}
-      summaryPlace={p.place || t("search.anywhere")}
-      summaryWhen={`${formatDate(p.checkIn, true, locale)}${nights} · ${p.adults + p.children === 1 ? t("guests.guestOne") : t("guests.guestMany", { n: p.adults + p.children })}`}
       searchBar={searchBar}
-      filters={<Filters params={p} inline />}
       sheet={<Filters params={p} sheetOnly />}
-      controls={<><SortSelect params={p} />{p.near ? null : <NearMeButton active={false} />}</>}
     />
   );
   const withMap = (page: React.ReactNode) => <MapOverlayHost initialOpen={mapMode} overlay={overlay}>{page}</MapOverlayHost>;
 
-  const title = `${p.place ? t("search.titlePlace", { place: p.place }) : t("search.title")} · ${t(items.length === 1 ? "search.countOne" : "search.count", { n: items.length })}`;
   const empty = {
     title: t("search.empty.title"), body: t(anyFilter ? "search.empty.filters" : "search.empty.place"),
     action: <LinkButton href={`/search?${toQueryString({ checkIn: p.checkIn, checkOut: p.checkOut, stayType: p.stayType })}`} variant="secondary">{t("search.empty.reset")}</LinkButton>,

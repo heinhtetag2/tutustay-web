@@ -16,6 +16,8 @@ import { StayMap, type Bounds, type MapPin } from "./StayMap";
 
 interface Props {
   items: StaySummary[];
+  /** "Stays · 8 stays", the same count line as the list view. */
+  title: string;
   query: string;
   stayType: "overnight" | "session" | "daycation";
   foreigner: boolean;
@@ -23,17 +25,8 @@ interface Props {
   closeQuery: string;
   boundsOn: boolean;
   /** Wide screens: the filter column. */
-  /** The floating filter pills over the map (wide screens). */
-  filters: React.ReactNode;
   /** Smaller screens: the Filters button and panel. */
   sheet: React.ReactNode;
-  /** Sort and "Stay near you". */
-  controls: React.ReactNode;
-  /** "Yangon · 5 Oct – 6 Oct · 2 guests", shown in the top bar. */
-  summary: string;
-  /** The same summary split in two for the phone card: the place, then dates and guests. */
-  summaryPlace: string;
-  summaryWhen: string;
   /** The search summary shown at the top on phones; tapping it opens the search drawer. */
   searchBar: React.ReactNode;
 }
@@ -43,7 +36,7 @@ interface Props {
  * Selecting a pin highlights its card and the other way round. "Update results when map moves" searches the visible area.
  * Small screens show the list OR the map, with a toggle.
  */
-export function SearchMapView({ items, query, stayType, foreigner, closeQuery, boundsOn, filters, sheet, controls, summary, searchBar }: Props) {
+export function SearchMapView({ items, title, query, stayType, foreigner, closeQuery, boundsOn, sheet, searchBar }: Props) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -51,7 +44,6 @@ export function SearchMapView({ items, query, stayType, foreigner, closeQuery, b
   const params = useSearchParams();
   const [selected, setSelected] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
-  const [pane] = useState<"list" | "map">("map"); // phones always open on the map: "View list" returns to the results page
   const [follow, setFollow] = useState(boundsOn);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const root = useRef<HTMLDivElement>(null);
@@ -138,6 +130,8 @@ export function SearchMapView({ items, query, stayType, foreigner, closeQuery, b
   // Full-screen mode: lock page scroll, make everything behind the overlay inert (so Tab and screen readers stay
   // inside the map view), and let Escape close it. All of it is undone when the map closes.
   useEffect(() => {
+    // Wide screens show the list beside the map on the page itself, so this phone overlay has nothing to do there.
+    if (window.matchMedia("(min-width: 1024px)").matches) { overlay?.hide(); return; }
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const inerted: Element[] = [];
@@ -155,76 +149,40 @@ export function SearchMapView({ items, query, stayType, foreigner, closeQuery, b
     };
   }, []);
 
-  function toggleFollow(on: boolean) {
-    setFollow(on);
-    if (!on && params.get("bounds")) {
-      const q = new URLSearchParams(params.toString());
-      q.delete("bounds");
-      router.replace(`${pathname}?${q.toString()}`, { scroll: false });
-    }
-  }
-
   function select(id: string | null) {
     setSelected(id);
     if (id) document.getElementById(`stay-${id}`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
 
-  const tab = (p: "list" | "map") => `type-label min-h-11 flex-1 px-4 ${pane === p ? "bg-surface-brand-subtle text-text-brand" : ""}`;
-
   return (
-    <div ref={root} role="region" aria-label={t("map.fullscreen")} className={`fixed inset-0 z-[1000] flex flex-col bg-surface-page ${closing ? "anim-map-out" : "anim-map-in"}`}>
+    <div ref={root} role="region" aria-label={t("map.fullscreen")} className={`fixed inset-0 z-[1000] flex flex-col bg-surface-page lg:hidden ${closing ? "anim-map-out" : "anim-map-in"}`}>
       {/* Phones: the same top nav as the list (logo, notifications, language, account), so the map is not a dead end. */}
       <div className="shrink-0 lg:hidden"><Header /></div>
       {/* Small screens keep a slim bar so Close map is always reachable. On wide screens Close and the search-as-you-move control float over the map. */}
       <header className="flex flex-col gap-3 border-b border-border-subtle bg-surface-page px-3 pb-3 pt-3 lg:hidden">
         {searchBar}
-        <div className="flex flex-wrap items-center gap-2">
-          <div>{sheet}</div>
+        {/* Same top as the list: the count on the left, "Filter & Sort" on the right. */}
+        <div className="flex items-center justify-between gap-3">
+          <p className="type-subheading min-w-0">{title}</p>
+          <div className="shrink-0">{sheet}</div>
         </div>
       </header>
 
       {/* Phones: the way back to the list is one pill at the bottom centre, the same place as "Show map" on the list. */}
       <LocalLink
         href={`/search?${closeQuery}`} onClick={onCloseClick}
-        className="type-label absolute bottom-5 left-1/2 z-[600] inline-flex min-h-12 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-text-primary px-5 text-surface-raised shadow-high lg:hidden"
+        className={`type-label absolute left-1/2 z-[600] inline-flex min-h-12 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-text-primary px-5 text-surface-raised shadow-high transition-[bottom] duration-200 lg:hidden ${selected !== null ? "bottom-[9.5rem]" : "bottom-5"}`}
       >
         <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3.500 6h.01M3.500 12h.01M3.500 18h.01" /></svg>
         {t("view.showList")}
       </LocalLink>
 
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(22rem,30rem)_minmax(0,1fr)]">
-        <section aria-label={t("search.results")} className={`${pane === "map" ? "hidden lg:flex" : "flex anim-pane"} anim-list-in min-h-0 flex-col overflow-y-auto border-border-subtle bg-surface-raised p-3 lg:border-r`}>
-          <div className="mb-3 flex flex-col gap-3">
-            <div><h1 className="type-subheading">{t(items.length === 1 ? "search.countOne" : "search.count", { n: items.length })}</h1><p className="type-body-sm hidden text-text-secondary lg:block">{summary}</p></div>
-            <div className="flex flex-wrap items-start gap-3"><div className="lg:hidden">{sheet}</div>{controls}</div>
-          </div>
-          {items.length === 0 ? (
-            <EmptyState title={t("search.empty.title")} body={t(boundsOn ? "map.empty.area" : "search.empty.filters")} />
-          ) : (
-            <ul className="flex flex-col gap-3">
-              {items.map((item) => (
-                <ResultCard
-                  key={item.stay.id} item={item} locale={locale} query={query} stayType={stayType} foreigner={foreigner}
-                  selected={selected === item.stay.id} onHover={(on) => setHover(on ? item.stay.id : null)} onSelect={() => setSelected(item.stay.id)}
-                />
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <div className={`${pane === "list" ? "hidden lg:block" : "block anim-pane"} anim-fade-in relative min-h-0`}>
+      <div className="grid min-h-0 flex-1">
+        <div data-strip={selected !== null} className="anim-fade-in relative min-h-0 data-[strip=true]:[&_.leaflet-bottom]:mb-[9rem]">
           <StayMap
             pins={pins} selectedId={selected} hoverId={hover} onSelect={select} onBoundsChange={onBounds} popup={wide}
             ariaLabel={t("map.alt", { n: items.length })} openLabel={t("map.openStay")} failedLabel={t("map.tilesFailed")} clusterLabel={t("map.clusterWord")} zoomHint={t("map.zoomHint")} className="size-full"
           />
-          <label className="type-body-sm absolute left-3 top-3 z-[500] hidden min-h-11 lg:flex items-center gap-2 rounded-control bg-surface-raised px-3 shadow-raised">
-            <input type="checkbox" checked={follow} onChange={(e) => toggleFollow(e.target.checked)} className="size-5 accent-[var(--action-primary)]" />
-            {t("map.update")}
-          </label>
-          <div className="absolute left-3 right-48 top-[4.25rem] z-[500] hidden lg:block">{filters}</div>
-          <LocalLink href={`/search?${closeQuery}`} onClick={onCloseClick} className="type-label absolute right-3 top-3 z-[500] hidden min-h-11 items-center gap-2 rounded-control bg-surface-raised px-4 shadow-raised hover:bg-surface-subtle lg:inline-flex">
-            {t("map.close")} <span aria-hidden>✕</span>
-          </LocalLink>
           {selected !== null ? (
             <ul
               ref={strip} onScroll={onSwipe} aria-label={t("search.results")}
