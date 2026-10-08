@@ -45,7 +45,7 @@ export default async function SearchPage({
   const searchBar = (
     <SearchBar
       variant="summary" today={today} placeOptions={places}
-      initial={{ place: p.place, checkIn: p.checkIn, checkOut: p.checkOut, adults: p.adults, children: p.children, rooms: p.rooms, stayType: p.stayType, sessionHours: p.sessionHours, foreigner: p.foreigner }}
+      initial={{ place: p.place, checkIn: p.checkIn, checkOut: p.checkOut, adults: p.adults, children: p.children, rooms: p.rooms, stayType: p.stayType, sessionHours: p.sessionHours, startTime: p.startTime, endTime: p.endTime, foreigner: p.foreigner }}
       preserve={searchPreserve}
     />
   );

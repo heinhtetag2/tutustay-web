@@ -45,3 +45,6 @@ export function stayWindow(stayType: StayType, policies: WindowPolicies, startTi
   const endMin = toMinutes(start) + sessionHours * 60;
   return { start, end: toHhmm(endMin), nextDay: endMin >= 24 * 60 };
 }
+
+/** Times to offer before a property is chosen (the search screens). Each hotel's own hours replace these on its pages. */
+export const DEFAULT_WINDOW_POLICIES: WindowPolicies = { checkIn: "14:00", checkOut: "12:00", sessionStart: "09:00" };

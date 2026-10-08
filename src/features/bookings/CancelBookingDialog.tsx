@@ -22,8 +22,8 @@ export function CancelBookingDialog({ booking }: { booking: Booking }) {
   return (
     <>
       <Button
-        variant="secondary" size="lg" aria-haspopup="dialog" onClick={() => { setReason(undefined); dialog.current?.showModal(); }}
-        className="w-full border-error-text! bg-error-bg! font-semibold text-error-text! hover:bg-error-bg! hover:opacity-80 sm:w-auto"
+        variant="secondary" aria-haspopup="dialog" onClick={() => { setReason(undefined); dialog.current?.showModal(); }}
+        className="w-fit border-error-text! bg-error-bg! font-semibold text-error-text! hover:bg-error-bg! hover:opacity-80"
       >
         <svg aria-hidden viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="5" width="16" height="15" rx="2.500" /><path d="M8 3v4M16 3v4M4 10h16M10 13.500l4 4M14 13.500l-4 4" /></svg>
         {t("cancel.action")}

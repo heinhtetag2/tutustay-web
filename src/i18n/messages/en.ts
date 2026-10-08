@@ -144,6 +144,7 @@ export const en = {
   "filter.rating3": "3.0 and above",
   "filter.refundable": "Has refundable rooms",
   "filter.facilities": "Property facilities",
+  "filter.showRooms": "Show rooms",
   "filter.clear": "Clear filters",
   "filter.more": "More filters",
   "filter.view": "View {n} stays",

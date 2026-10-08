@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { addDays, formatDate, LIMITS, type SessionHours, type StayType } from "@/domain";
+import { addDays, DEFAULT_WINDOW_POLICIES, formatDate, LIMITS, type SessionHours, type StayType } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { dataLabel } from "@/i18n/dataLabels";
 import type { GuestState } from "@/shared/components/GuestPicker";
@@ -21,8 +21,8 @@ interface Props {
   value: SheetValue;
   onChange: (v: SheetValue) => void;
   /** Overnight, session or daycation (and session length). */
-  stay: { stayType: StayType; sessionHours: SessionHours };
-  onStay: (v: { stayType: StayType; sessionHours: SessionHours }) => void;
+  stay: { stayType: StayType; sessionHours: SessionHours; startTime?: string; endTime?: string };
+  onStay: (v: { stayType: StayType; sessionHours: SessionHours; startTime?: string; endTime?: string }) => void;
   /** Runs the search. Returns false (and the sheet stays open) when the dates are not valid. */
   onSubmit: () => boolean;
   overnight: boolean;
@@ -99,7 +99,7 @@ export function MobileSearchSheet({ open, onClose, value, onChange, stay, onStay
           </div>
           <h2 className="type-heading px-5 pb-4 pt-1">{t("search.label")}</h2>
           <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-5">
-            <StayTypePicker stayType={stay.stayType} sessionHours={stay.sessionHours} onChange={onStay} />
+            <StayTypePicker stayType={stay.stayType} sessionHours={stay.sessionHours} policies={DEFAULT_WINDOW_POLICIES} startTime={stay.startTime} endTime={stay.endTime} onChange={onStay} />
             {row(t("search.where"), value.place ? dataLabel(locale, value.place) : t("search.anywhere"), "where")}
             {row(t("sheet.when"), dates, "when")}
             {row(t("search.guests"), who, "who")}

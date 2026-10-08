@@ -15,7 +15,7 @@ import { StayTypeMenu } from "./StayTypeMenu";
 import { toQueryString, type SearchParams } from "@/validation/search";
 
 interface Props {
-  initial: Pick<SearchParams, "place" | "checkIn" | "checkOut" | "adults" | "children" | "rooms" | "stayType" | "sessionHours" | "foreigner">;
+  initial: Pick<SearchParams, "place" | "checkIn" | "checkOut" | "adults" | "children" | "rooms" | "stayType" | "sessionHours" | "foreigner"> & { startTime?: string; endTime?: string };
   today: string;
   placeOptions: string[];
   /** `hero`: always open. `summary`: a compact editable bar that opens on small screens. */
@@ -31,8 +31,10 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
   const [place, setPlace] = useState(initial.place);
   const [checkIn, setCheckIn] = useState(initial.checkIn);
   const [checkOut, setCheckOut] = useState(initial.checkOut);
-  const [stay, setStay] = useState<{ stayType: StayType; sessionHours: SessionHours }>({
+  const [stay, setStay] = useState<{ stayType: StayType; sessionHours: SessionHours; startTime?: string; endTime?: string }>({
     stayType: initial.stayType,
+    startTime: initial.startTime,
+    endTime: initial.endTime,
     sessionHours: initial.sessionHours,
   });
   const [guests, setGuests] = useState<GuestState>({
@@ -54,7 +56,7 @@ export function SearchBar({ initial, today, placeOptions, variant = "hero", pres
 
   // On the search page the stay type lives in the Filters panel and changes the URL: follow it.
   useEffect(() => {
-    setStay({ stayType: initial.stayType, sessionHours: initial.sessionHours });
+    setStay({ stayType: initial.stayType, sessionHours: initial.sessionHours, startTime: initial.startTime, endTime: initial.endTime });
   }, [initial.stayType, String(initial.sessionHours)]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function search(extra?: Partial<SearchParams>) {

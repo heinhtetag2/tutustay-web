@@ -138,6 +138,7 @@ export const my: Partial<Record<MessageKey, string>> = {
   "filter.rating3": "၃.၀ နှင့်အထက်",
   "filter.refundable": "ငွေပြန်အမ်းနိုင်သော အခန်းများ ရှိသည်",
   "filter.facilities": "တည်းခိုခန်း ဝန်ဆောင်မှုများ",
+  "filter.showRooms": "အခန်းများ ကြည့်ရန်",
   "filter.clear": "စစ်ထုတ်မှုများ ရှင်းရန်",
   "filter.more": "နောက်ထပ် စစ်ထုတ်မှုများ",
   "filter.view": "တည်းခိုခန်း {n} ခု ကြည့်ရန်",

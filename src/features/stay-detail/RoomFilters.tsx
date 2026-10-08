@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { dataLabel } from "@/i18n/dataLabels";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { AmenityIcon } from "@/shared/ui/AmenityIcon";
+import { Button } from "@/shared/ui/Button";
 import { Select } from "@/shared/ui/Field";
 import { SORTS, toQueryString, type SearchParams } from "@/validation/search";
 
@@ -41,8 +42,64 @@ export function RoomFilters({ params }: { params: SearchParams }) {
   const menu = "absolute left-0 top-full z-30 mt-2 flex w-max max-w-[min(20rem,calc(100vw-2rem))] flex-col gap-1 rounded-card border border-border-subtle bg-surface-raised p-2 shadow-[0_8px_24px_#00000026]";
   const item = "type-body-sm flex min-h-10 cursor-pointer items-center gap-3 rounded-field px-3 hover:bg-surface-subtle";
 
+  const dialog = useRef<HTMLDialogElement>(null);
+  const clearAll = () => apply({ beds: [], roomFacilities: [], refundable: false });
+  const chipBtn = (on: boolean) => `type-body-sm inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 ${on ? "border-border-focus bg-surface-brand-subtle font-semibold text-text-brand" : "border-border-control hover:bg-surface-subtle"}`;
+
+  // Phones: one "Filters" button that opens a bottom sheet, and the sort next to it, on a single line.
+  const phone = (
+    <div className="flex items-center justify-between gap-3 md:hidden">
+      <button type="button" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()} className={pill(active > 0)}>
+        <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><path d="M3 7h9M18 7h3M3 17h3M12 17h9" /><circle cx="15" cy="7" r="2.5" /><circle cx="9" cy="17" r="2.5" /></svg>
+        {t("filter.title")}{active ? ` (${active})` : ""}
+      </button>
+      <label className="flex items-center gap-2">
+        <span className="sr-only">{t("sort.label")}</span>
+        <Select aria-label={t("sort.label")} className="w-auto min-h-10! gap-2 rounded-full py-0! pl-3.5 pr-3 text-sm! leading-5!" value={ROOM_SORTS.includes(params.sort as never) ? params.sort : "recommended"} onChange={(e) => apply({ sort: e.target.value as SearchParams["sort"] })}>
+          {ROOM_SORTS.map((x) => <option key={x} value={x}>{t(`sort.${x}`)}</option>)}
+        </Select>
+      </label>
+      <dialog
+        ref={dialog} aria-label={t("filter.title")}
+        onClick={(e) => { if (e.target === dialog.current) dialog.current?.close(); }}
+        className="sheet-up fixed inset-x-0 bottom-0 top-auto m-0 max-h-[88dvh] w-full max-w-none overflow-hidden rounded-t-sheet bg-surface-raised p-0 text-text-primary shadow-high backdrop:bg-black/50 open:flex open:flex-col md:hidden"
+      >
+        <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
+          <h2 className="type-heading">{t("filter.title")}</h2>
+          <button type="button" aria-label={t("common.close")} onClick={() => dialog.current?.close()} className="inline-flex size-11 cursor-pointer items-center justify-center rounded-full hover:bg-surface-subtle">
+            <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+          <fieldset className="mb-6 border-b border-border-subtle pb-6">
+            <legend className="type-label mb-3">{t("filter.beds")}</legend>
+            <div className="flex flex-wrap gap-2">
+              {BEDS.map((b) => <button key={b} type="button" aria-pressed={params.beds.includes(b)} onClick={() => apply({ beds: toggle(params.beds, b) })} className={chipBtn(params.beds.includes(b))}>{dataLabel(locale, b)}</button>)}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend className="type-label mb-3">{t("filter.roomFacilities")}</legend>
+            <div className="flex flex-wrap gap-2">
+              {ROOM_FACILITIES.map((f) => (
+                <button key={f} type="button" aria-pressed={params.roomFacilities.includes(f)} onClick={() => apply({ roomFacilities: toggle(params.roomFacilities, f) })} className={chipBtn(params.roomFacilities.includes(f))}>
+                  <AmenityIcon name={f} className="size-4" />{dataLabel(locale, f)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+        <div className="flex items-center justify-between gap-3 border-t border-border-subtle px-5 py-3">
+          <button type="button" onClick={clearAll} disabled={active === 0} className="type-label min-h-11 cursor-pointer px-1 text-text-link underline underline-offset-4 disabled:cursor-default disabled:text-text-secondary disabled:no-underline">{t("filter.clear")}</button>
+          <Button onClick={() => dialog.current?.close()}>{t("filter.showRooms")}</Button>
+        </div>
+      </dialog>
+    </div>
+  );
+
   return (
-    <div ref={root} role="group" aria-label={t("filter.title")} className="flex flex-wrap items-center gap-2">
+    <>
+      {phone}
+    <div ref={root} role="group" aria-label={t("filter.title")} className="hidden flex-wrap items-center gap-2 md:flex">
       <div className="relative">
         <button type="button" aria-expanded={open === "beds"} aria-haspopup="true" onClick={() => setOpen(open === "beds" ? null : "beds")} className={pill(params.beds.length > 0)}>
           {t("filter.beds")}{params.beds.length ? ` (${params.beds.length})` : ""}{chev}
@@ -84,5 +141,6 @@ export function RoomFilters({ params }: { params: SearchParams }) {
         </Select>
       </label>
     </div>
+    </>
   );
 }

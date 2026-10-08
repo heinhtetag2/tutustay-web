@@ -51,7 +51,7 @@ export function RoomCard({ room, locale, stayId, checkIn, checkOut, selected, st
         {bookable ? (
           <>
             <RoomPrice rate={rate} nights={nights} rooms={Math.max(1, selected)} stayType={stayType} mode={payment.mode} depositPct={payment.depositPct} />
-            <RoomQuantity roomId={room.id} value={Math.min(selected, room.availableCount)} max={room.availableCount} name={room.name} />
+            <div className="ml-auto"><RoomQuantity roomId={room.id} value={Math.min(selected, room.availableCount)} max={room.availableCount} name={room.name} /></div>
           </>
         ) : (
           <p className="type-label text-text-secondary">

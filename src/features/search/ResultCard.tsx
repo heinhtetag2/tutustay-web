@@ -12,13 +12,15 @@ import { Price } from "@/shared/ui/Price";
 import type { StaySummary } from "@/services/stays.service";
 import { FavoriteButton } from "./FavoriteButton";
 
-interface Props { item: StaySummary; locale: Locale; query: string; stayType: "overnight" | "session" | "daycation"; foreigner: boolean; layout?: "row" | "card" | "split" | "wide"; index?: number; selected?: boolean; onHover?: (on: boolean) => void; onSelect?: () => void }
+interface Props { item: StaySummary; locale: Locale; query: string; stayType: "overnight" | "session" | "daycation"; foreigner: boolean; layout?: "row" | "card" | "split" | "wide" | "compact"; index?: number; selected?: boolean; onHover?: (on: boolean) => void; onSelect?: () => void }
 
 export function ResultCard({ item, locale, query, stayType, foreigner, layout = "row", index, selected, onHover, onSelect }: Props) {
   const t = createT(locale);
   const { stay, fromRate, available, unavailableReason, distanceKm } = item;
   const unit = stayType === "overnight" ? t("price.perNight") : t("price.perStay");
   const card = layout === "card";
+  // "compact": a small photo beside the details on phones, the full card from tablet up. Keeps long saved lists short.
+  const compact = layout === "compact";
   const wide = layout === "wide";
   const split = layout === "split" || wide;
   const rating = stay.rating ? stay.rating.score.toFixed(1) : null;
@@ -29,9 +31,9 @@ export function ResultCard({ item, locale, query, stayType, foreigner, layout = 
       <LocalLink
         href={`/stays/${stay.id}${query ? `?${query}` : ""}`}
         onClick={onSelect}
-        className={`group flex gap-4 ${focus} ${card ? "h-full flex-col gap-3" : wide ? "flex-col items-stretch gap-4 sm:flex-row sm:gap-6" : split ? "flex-col items-stretch gap-3 sm:flex-row lg:flex-col lg:gap-3" : "items-start py-1"} ${available ? "" : "opacity-70"}`}
+        className={`group flex gap-4 ${focus} ${compact ? "items-start gap-3 sm:h-full sm:flex-col sm:items-stretch" : card ? "h-full flex-col gap-3" : wide ? "flex-col items-stretch gap-4 sm:flex-row sm:gap-6" : split ? "flex-col items-stretch gap-3 sm:flex-row lg:flex-col lg:gap-3" : "items-start py-1"} ${available ? "" : "opacity-70"}`}
       >
-        <div className={`relative shrink-0 overflow-hidden rounded-card ${card ? "aspect-[20/19] w-full" : wide ? "aspect-[4/3] w-full sm:w-64 lg:w-80" : split ? "aspect-[4/3] w-full sm:w-56 lg:w-full" : "aspect-[20/19] w-36 sm:w-56"}`}>
+        <div className={`relative shrink-0 overflow-hidden rounded-card ${compact ? "aspect-square w-28 sm:aspect-[20/19] sm:w-full" : card ? "aspect-[20/19] w-full" : wide ? "aspect-[4/3] w-full sm:w-64 lg:w-80" : split ? "aspect-[4/3] w-full sm:w-56 lg:w-full" : "aspect-[20/19] w-36 sm:w-56"}`}>
           <PhotoTile src={stayCover(stay.id)} alt={stay.name} className="absolute inset-0 size-full transition-transform duration-300 group-hover:scale-[1.03]" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -68,7 +70,7 @@ export function ResultCard({ item, locale, query, stayType, foreigner, layout = 
           </div>
         </div>
       </LocalLink>
-      <div className={card ? "absolute right-3 top-3" : wide ? "absolute right-3 top-8 sm:left-[14rem] sm:right-auto lg:left-[17rem]" : split ? "absolute right-3 top-8 sm:left-[11rem] sm:right-auto lg:left-auto lg:right-3" : "absolute left-24 top-1 sm:left-44"}><FavoriteButton stayId={stay.id} name={stay.name} overlay /></div>
+      <div className={compact ? "absolute left-[5.5rem] top-2 sm:left-auto sm:right-3 sm:top-3" : card ? "absolute right-3 top-3" : wide ? "absolute right-3 top-8 sm:left-[14rem] sm:right-auto lg:left-[17rem]" : split ? "absolute right-3 top-8 sm:left-[11rem] sm:right-auto lg:left-auto lg:right-3" : "absolute left-24 top-1 sm:left-44"}><FavoriteButton stayId={stay.id} name={stay.name} overlay /></div>
     </li>
   );
 }

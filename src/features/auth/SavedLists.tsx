@@ -32,8 +32,8 @@ export function FavoritesList() {
     return { stay, fromRate, available: fromRate !== null, offered: stayTypesOffered(stay.rooms) };
   });
   return (
-    <ul className="grid gap-x-6 gap-y-8 sm:grid-cols-2 xl:grid-cols-3">
-      {items.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query="" stayType="overnight" foreigner={false} layout="card" />)}
+    <ul className="grid gap-x-6 gap-y-5 sm:grid-cols-2 sm:gap-y-8 xl:grid-cols-3">
+      {items.map((item, i) => <ResultCard key={item.stay.id} index={i} item={item} locale={locale} query="" stayType="overnight" foreigner={false} layout="compact" />)}
     </ul>
   );
 }
