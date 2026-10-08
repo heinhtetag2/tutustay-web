@@ -16,8 +16,8 @@ export function PriceBreakdown({ price, className, showNext = true }: { price: B
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       <dl className="type-body-sm flex flex-col gap-2">
-        {price.lines.map((l) => (
-          <div key={l.key} className={row}>
+        {price.lines.map((l, i) => (
+          <div key={`${l.key}-${l.label ?? i}`} className={row}>
             <dt className="text-text-secondary">
               {l.key === "rate" && l.label
                 ? `${l.label} · ${formatKs(l.rate ?? price.unitRate)} × ${l.quantity ?? 1}`

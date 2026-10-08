@@ -45,7 +45,7 @@ export default async function StayRoomsPage({ params, searchParams }: Props) {
   const nights = Math.max(1, nightsBetween(p.checkIn, p.checkOut));
   const query = toQueryString({
     checkIn: p.checkIn, checkOut: p.checkOut, adults: p.adults, children: p.children, rooms: p.rooms,
-    stayType: p.stayType, sessionHours: p.sessionHours, foreigner: p.foreigner,
+    stayType: p.stayType, sessionHours: p.sessionHours, startTime: p.startTime, endTime: p.endTime, foreigner: p.foreigner,
   });
   const nextStart = allSoldOut ? await findNextAvailableStart(id, p) : null;
   const stayHref = `/stays/${id}${query ? `?${query}` : ""}`;
@@ -101,10 +101,10 @@ export default async function StayRoomsPage({ params, searchParams }: Props) {
           <div className="rounded-card border border-border-subtle bg-surface-raised p-5 lg:hidden">{summary(undefined, false)}</div>
         </section>
 
-        <BookingCard params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} reserveHref={null} footer={summary()} />
+        <BookingCard params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} policies={stay.policies} reserveHref={null} footer={summary()} />
       </div>
 
-      <StayBookingBar params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} action={<RoomSelectionSummary variant="bar" stayId={id} rooms={selectable} nights={nights} stayType={p.stayType} mode={stay.payment.mode} depositPct={stay.payment.depositPct} guests={p.adults + p.children} query={query} />} />
+      <StayBookingBar params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} policies={stay.policies} action={<RoomSelectionSummary variant="bar" stayId={id} rooms={selectable} nights={nights} stayType={p.stayType} mode={stay.payment.mode} depositPct={stay.payment.depositPct} guests={p.adults + p.children} query={query} />} />
     </Container>
   );
 }

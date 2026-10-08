@@ -16,6 +16,10 @@ export interface SearchParams {
   rooms: number;
   stayType: StayType;
   sessionHours: SessionHours;
+  /** HH:MM the session begins. Only used for sessions. */
+  startTime?: string;
+  /** HH:MM a daycation ends. Only used for daycations. */
+  endTime?: string;
   /** "Guest from outside Myanmar": selects the foreigner rate (rules for mixed parties: Q5). */
   foreigner: boolean;
   minPrice?: number;
@@ -65,6 +69,8 @@ const schema = z.object({
   rooms: int(1, 6, 1),
   stayType: z.enum(STAY_TYPES as [StayType, ...StayType[]]).catch("overnight"),
   sessionHours: z.coerce.number().refine((n) => (SESSION_HOURS as readonly number[]).includes(n)).catch(3),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional().catch(undefined),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional().catch(undefined),
   foreigner: bool.catch(false),
   minPrice: optionalInt,
   maxPrice: optionalInt,
@@ -122,6 +128,8 @@ export function toQueryString(p: Partial<SearchParams>): string {
   if (p.rooms !== undefined && p.rooms !== DEFAULTS.rooms) set("rooms", p.rooms);
   if (p.stayType && p.stayType !== DEFAULTS.stayType) set("stayType", p.stayType);
   if (p.stayType === "session" && p.sessionHours && p.sessionHours !== DEFAULTS.sessionHours) set("sessionHours", p.sessionHours);
+  if (p.stayType === "session" || p.stayType === "daycation") set("startTime", p.startTime);
+  if (p.stayType === "daycation") set("endTime", p.endTime);
   set("foreigner", p.foreigner);
   set("minPrice", p.minPrice);
   set("maxPrice", p.maxPrice);

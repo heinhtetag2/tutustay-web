@@ -48,7 +48,7 @@ export default async function StayPage({ params, searchParams }: Props) {
   const nights = Math.max(1, nightsBetween(p.checkIn, p.checkOut));
   const query = toQueryString({
     checkIn: p.checkIn, checkOut: p.checkOut, adults: p.adults, children: p.children, rooms: p.rooms,
-    stayType: p.stayType, sessionHours: p.sessionHours, foreigner: p.foreigner,
+    stayType: p.stayType, sessionHours: p.sessionHours, startTime: p.startTime, endTime: p.endTime, foreigner: p.foreigner,
   });
   const nextStart = allSoldOut ? await findNextAvailableStart(id, p) : null;
   const reserveHref = `/stays/${id}/rooms${query ? `?${query}` : ""}`;
@@ -108,13 +108,13 @@ export default async function StayPage({ params, searchParams }: Props) {
           <StayPolicies stay={stay} locale={locale} />
         </div>
 
-        <BookingCard params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} reserveHref={reserveHref} />
+        <BookingCard params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} policies={stay.policies} reserveHref={reserveHref} />
       </div>
 
       <NearbyStays stay={stay} locale={locale} params={p} query={query} />
 
       {/* Phones: price and dates pinned at the bottom, tap for the booking sheet. */}
-      <StayBookingBar params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} reserveHref={reserveHref} />
+      <StayBookingBar params={p} today={today} offered={offered} fromRate={fromRate} soldOut={allSoldOut} sessionHours={stay.policies.sessionHours} policies={stay.policies} reserveHref={reserveHref} />
     </Container>
   );
 }

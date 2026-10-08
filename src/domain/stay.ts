@@ -33,6 +33,9 @@ export interface Stay {
     checkOut: string;
     breakfast: "free" | "paid" | "none";
     sessionStart: string;
+    /** Daycation hours, set by the hotel. Falls back to 09:00 to 17:00. */
+    daycationStart?: string;
+    daycationEnd?: string;
     /** Session lengths are set BY THE HOTEL (Terms §04). */
     sessionHours: number[];
   };

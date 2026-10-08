@@ -101,6 +101,7 @@ export function BookingStatusView({ booking }: { booking: Booking }) {
             <div><dt className="type-label">{t("status.stay")}</dt><dd>{booking.stayName}</dd></div>
             <div><dt className="type-label">{t("status.room")}</dt><dd>{booking.roomName} × {booking.rooms}</dd></div>
             <div><dt className="type-label">{t("status.when")}</dt><dd>{overnight ? `${formatDate(booking.checkIn, false, locale)} → ${formatDate(booking.checkOut, false, locale)}` : formatDate(booking.checkIn, false, locale)}</dd></div>
+            {booking.startTime && booking.endTime ? <div><dt className="type-label">{t("stayType.startTime")}</dt><dd>{t(booking.endsNextDay ? "stayType.endsNextDay" : "stayType.ends", { start: booking.startTime, end: booking.endTime })}</dd></div> : null}
             <div><dt className="type-label">{t("stayType.label")}</dt><dd>{t(`stayType.${booking.stayType}`)}{booking.sessionHours ? ` · ${t("stayType.hours", { n: booking.sessionHours })}` : ""}</dd></div>
             <div><dt className="type-label">{t("status.guest")}</dt><dd>{booking.guest.bookingForOther ? t("status.forOther", { name: booking.guest.stayingGuestName ?? "" }) : booking.guest.name}</dd></div>
             <div><dt className="type-label">{t("status.payment")}</dt><dd><PaymentModeBadge mode={booking.mode} /></dd></div>

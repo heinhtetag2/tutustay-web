@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { formatDate, todayIso } from "@/domain";
 import { SearchBar } from "@/features/search/SearchBar";
-import { Filters, SortSelect } from "@/features/search/Filters";
+import { Filters, QuickChips, SortSelect } from "@/features/search/Filters";
 import { ResultCard } from "@/features/search/ResultCard";
 import { MapCard } from "@/features/search/MapCard";
 import { NearMeButton } from "@/features/search/NearMeButton";
@@ -64,7 +64,7 @@ export default async function SearchPage({
         summaryWhen={`${formatDate(p.checkIn, true, locale)}${nights} · ${p.adults + p.children === 1 ? t("guests.guestOne") : t("guests.guestMany", { n: p.adults + p.children })}`}
         searchBar={searchBar}
         filters={<Filters params={p} inline />}
-        sheet={<Filters params={p} sheetOnly />}
+        sheet={<><Filters params={p} sheetOnly /><QuickChips params={p} className="basis-full" /></>}
         controls={<><SortSelect params={p} />{p.near ? null : <NearMeButton active={false} />}</>}
       />
       </>
@@ -97,6 +97,7 @@ export default async function SearchPage({
               <div className="lg:hidden"><Filters params={p} sheetOnly count={items.length} /></div>
             </div>
           </div>
+          <QuickChips params={p} className="mb-5" />
           <div className="mb-6 hidden lg:block"><Filters params={p} inline /></div>
           {items.length === 0 ? (
             <EmptyState title={empty.title} body={empty.body} action={empty.action} />
@@ -116,7 +117,7 @@ export default async function SearchPage({
         items={items} query={carry} stayType={p.stayType} foreigner={p.foreigner} title={title} mapQuery={mapQuery} searchBar={searchBar} inlineFilters={<Filters params={p} inline />}
         viewToggle={<ViewToggle params={p} locale={locale} current="map" className="lg:absolute lg:bottom-6 lg:left-1/2 lg:z-10 lg:-translate-x-1/2" />}
         notice={datesRepaired ? <StatusBanner tone="warning" className="mt-3">{t("search.datesRepaired")}</StatusBanner> : null}
-        controls={<><ViewSwitch params={p} locale={locale} /><Filters params={p} sheetOnly count={items.length} /></>}
+        controls={<><ViewSwitch params={p} locale={locale} /><Filters params={p} sheetOnly count={items.length} /><QuickChips params={p} className="basis-full" /></>}
         empty={empty}
       />
     </>

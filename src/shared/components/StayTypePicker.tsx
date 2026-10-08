@@ -1,12 +1,19 @@
 "use client";
 
-import { SESSION_HOURS, STAY_TYPES, type SessionHours, type StayType } from "@/domain";
+import { SESSION_HOURS, daycationOptions, sessionStartOptions, STAY_TYPES, stayWindow, type SessionHours, type StayType, type WindowPolicies } from "@/domain";
 import { useT } from "@/i18n/I18nProvider";
+import { Select } from "@/shared/ui/Field";
 
 interface Props {
   stayType: StayType;
   sessionHours: SessionHours;
-  onChange: (next: { stayType: StayType; sessionHours: SessionHours }) => void;
+  onChange: (next: { stayType: StayType; sessionHours: SessionHours; startTime?: string; endTime?: string }) => void;
+  /** The hotel's times. With these, a session shows a start time to pick and every session or daycation shows when it starts and ends. */
+  policies?: WindowPolicies;
+  /** The picked session or daycation start (HH:MM). */
+  startTime?: string;
+  /** The picked daycation end (HH:MM). */
+  endTime?: string;
   /** Stay types the current property offers. Others are disabled WITH a reason. */
   offered?: StayType[];
   /** Session lengths this property offers. Set by the hotel (Terms §04). */
@@ -14,7 +21,7 @@ interface Props {
 }
 
 /** Segmented radio group: Overnight / Session / Daycation, plus session length when relevant. */
-export function StayTypePicker({ stayType, sessionHours, onChange, offered, hours = SESSION_HOURS }: Props) {
+export function StayTypePicker({ stayType, sessionHours, onChange, offered, hours = SESSION_HOURS, policies, startTime, endTime }: Props) {
   const t = useT();
   return (
     <fieldset className="flex flex-col gap-3">
@@ -40,7 +47,7 @@ export function StayTypePicker({ stayType, sessionHours, onChange, offered, hour
             >
               <input
                 type="radio" name="stayType" value={s} className="sr-only" checked={selected} disabled={disabled}
-                onChange={() => onChange({ stayType: s, sessionHours })}
+                onChange={() => onChange({ stayType: s, sessionHours, startTime, endTime })}
               />
               {t(`stayType.${s}`)}
             </label>
@@ -59,7 +66,7 @@ export function StayTypePicker({ stayType, sessionHours, onChange, offered, hour
               return (
                 <button
                   key={h} type="button" role="radio" aria-checked={on}
-                  onClick={() => onChange({ stayType, sessionHours: h as SessionHours })}
+                  onClick={() => onChange({ stayType, sessionHours: h as SessionHours, startTime, endTime })}
                   className={`min-h-10 cursor-pointer rounded-full border px-4 text-sm font-medium transition-colors ${on ? "border-action-primary bg-action-primary text-text-on-action" : "border-border-subtle bg-surface-raised hover:bg-surface-subtle"}`}
                 >
                   {t("stayType.hours", { n: h })}
@@ -69,6 +76,42 @@ export function StayTypePicker({ stayType, sessionHours, onChange, offered, hour
           </div>
         </div>
       ) : null}
+      {policies && stayType !== "overnight" ? (() => {
+        const win = stayWindow(stayType, policies, startTime, sessionHours, endTime);
+        if (!win) return null;
+        const options = sessionStartOptions(policies, sessionHours);
+        const day = daycationOptions(policies, win.start);
+        return (
+          <div className="flex flex-col gap-2">
+            {stayType === "session" ? (
+              <label className="flex flex-col gap-2">
+                <span className="type-label">{t("stayType.startTime")}</span>
+                <Select value={options.includes(win.start) ? win.start : options[0]} onChange={(e) => onChange({ stayType, sessionHours, startTime: e.target.value })}>
+                  {options.map((o) => <option key={o} value={o}>{o}</option>)}
+                </Select>
+              </label>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col gap-2">
+                  <span className="type-label">{t("stayType.startTime")}</span>
+                  <Select value={win.start} onChange={(e) => onChange({ stayType, sessionHours, startTime: e.target.value, endTime: undefined })}>
+                    {day.starts.map((o) => <option key={o} value={o}>{o}</option>)}
+                  </Select>
+                </label>
+                <label className="flex flex-col gap-2">
+                  <span className="type-label">{t("stayType.endTime")}</span>
+                  <Select value={win.end} onChange={(e) => onChange({ stayType, sessionHours, startTime: win.start, endTime: e.target.value })}>
+                    {day.ends.map((o) => <option key={o} value={o}>{o}</option>)}
+                  </Select>
+                </label>
+              </div>
+            )}
+            <p className="type-body-sm text-text-secondary">
+              {stayType === "daycation" ? t("stayType.daycationWindow", { start: win.start, end: win.end }) : t(win.nextDay ? "stayType.endsNextDay" : "stayType.ends", { start: win.start, end: win.end })}
+            </p>
+          </div>
+        );
+      })() : null}
     </fieldset>
   );
 }

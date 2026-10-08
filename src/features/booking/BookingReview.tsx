@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   applyCoupon, computePrice, formatDate, formatKs, INITIAL_STATUS, nightsBetween, rateFor,
-  type GuestType, type PaymentMode, type Room, type StayType, type SessionHours,
+  type GuestType, type PaymentMode, type Room, type StayType, type SessionHours, stayWindow, type WindowPolicies,
 } from "@/domain";
 import { ASSUMED_PRICING_RULES } from "@/config/pricing";
 import { dataLabel } from "@/i18n/dataLabels";
@@ -30,6 +30,9 @@ export interface ReviewContext {
   lines: { room: Room; qty: number }[];
   stayType: StayType;
   sessionHours: SessionHours;
+  startTime?: string;
+  endTime?: string;
+  policies: WindowPolicies;
   guestType: GuestType;
   checkIn: string;
   checkOut: string;
@@ -83,6 +86,7 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
   const refundable = ctx.lines.every((l) => l.room.refundable);
   const nights = Math.max(1, nightsBetween(ctx.checkIn, ctx.checkOut));
   const overnight = ctx.stayType === "overnight";
+  const win = stayWindow(ctx.stayType, ctx.policies, ctx.startTime, ctx.sessionHours, ctx.endTime);
 
   const price = useMemo(
     () => computePrice({ unitRate: rate, nights, rooms: ctx.rooms, items, stayType: ctx.stayType, discount: applied?.discount, mode, depositPct, rules: ASSUMED_PRICING_RULES }),
@@ -139,7 +143,7 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
     const booking = createBooking({
       status: INITIAL_STATUS, mode,
       stayId: ctx.stay.id, stayName: ctx.stay.name, stayPhone: ctx.stay.phone, roomId: ctx.room.id, roomName,
-      stayType: ctx.stayType, sessionHours: ctx.stayType === "session" ? ctx.sessionHours : undefined, guestType: ctx.guestType,
+      stayType: ctx.stayType, sessionHours: ctx.stayType === "session" ? ctx.sessionHours : undefined, startTime: win?.start, endTime: win?.end, endsNextDay: win?.nextDay, guestType: ctx.guestType,
       checkIn: ctx.checkIn, checkOut: ctx.checkOut, adults: ctx.adults, children: ctx.children, rooms: ctx.rooms,
       guest: { name: parsed.data.name, phone: parsed.data.phone, email: parsed.data.email, bookingForOther: parsed.data.bookingForOther, stayingGuestName: parsed.data.stayingGuestName || undefined },
       specialRequests: parsed.data.specialRequests || undefined, couponCode: applied?.code, refundable, price,
@@ -161,6 +165,7 @@ export function BookingReview({ ctx }: { ctx: ReviewContext }) {
           </p>
           <ul className="mt-4 flex flex-col gap-0.5">{ctx.lines.map((l) => <li key={l.room.id} className="type-label">{l.qty} × {l.room.name}</li>)}</ul>
           <p className="type-body-sm mt-1 text-text-secondary">{dateText}</p>
+          {win ? <p className="type-body-sm text-text-secondary">{t(win.nextDay ? "stayType.endsNextDay" : "stayType.ends", { start: win.start, end: win.end })}</p> : null}
           <p className="type-body-sm text-text-secondary">
             {t(`stayType.${ctx.stayType}`)}{ctx.stayType === "session" ? ` · ${t("stayType.hours", { n: ctx.sessionHours })}` : ""} · {t(ctx.guestType === "foreigner" ? "price.foreignerRate" : "price.localRate")}
           </p>

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { addDays, formatDate, isValidStayRange, nightsBetween, type SessionHours, type StayType } from "@/domain";
+import { addDays, formatDate, isValidStayRange, nightsBetween, type SessionHours, type StayType, type WindowPolicies } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { GuestPicker, type GuestState } from "@/shared/components/GuestPicker";
 import { StayTypePicker } from "@/shared/components/StayTypePicker";
@@ -20,6 +20,8 @@ interface Props {
   fromRate: number | null;
   soldOut?: boolean;
   sessionHours?: readonly number[];
+  /** The hotel's times, for the session start picker and the start-end line. */
+  policies?: WindowPolicies;
   /** On the stay page: where "Reserve" goes (the rooms screen). Without it the button jumps to the rooms on this page. */
   reserveHref?: string | null;
   /** Replaces the reserve button, for pages where the call to action depends on a selection. */
@@ -30,7 +32,7 @@ interface Props {
  * Sticky booking card (desktop right column). It edits the same URL the room list reads,
  * so the selection survives refresh, sharing and the sign-in gate.
  */
-export function BookingCard({ params, today, offered, fromRate, soldOut, sessionHours, reserveHref, footer }: Props) {
+export function BookingCard({ params, today, offered, fromRate, soldOut, sessionHours, policies, reserveHref, footer }: Props) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -67,8 +69,8 @@ export function BookingCard({ params, today, offered, fromRate, soldOut, session
       </div>
 
       <StayTypePicker
-        stayType={params.stayType} sessionHours={params.sessionHours} offered={offered} hours={sessionHours}
-        onChange={(s: { stayType: StayType; sessionHours: SessionHours }) => apply(s)}
+        stayType={params.stayType} sessionHours={params.sessionHours} offered={offered} hours={sessionHours} policies={policies} startTime={params.startTime} endTime={params.endTime}
+        onChange={(s: { stayType: StayType; sessionHours: SessionHours; startTime?: string; endTime?: string }) => apply(s)}
       />
       <div className="grid grid-cols-2 gap-3">
         <Field label={overnight ? t("search.checkIn") : t("search.date")} className={overnight ? "" : "col-span-2"}>

@@ -55,7 +55,7 @@ export default async function BookPage({ params, searchParams }: Props) {
           <BookingReview
             ctx={{
               stay: { id, name: stay.name, place: stay.place, coords: stay.coords, phone: stay.phone, checkIn: stay.policies.checkIn, checkOut: stay.policies.checkOut, payment: stay.payment },
-              room: room!, lines, stayType: p.stayType, sessionHours: p.sessionHours, guestType,
+              room: room!, lines, stayType: p.stayType, sessionHours: p.sessionHours, startTime: p.startTime, endTime: p.endTime, policies: stay.policies, guestType,
               checkIn: p.checkIn, checkOut: p.checkOut, adults: p.adults, children: p.children, rooms: totalRooms, today,
             }}
           />

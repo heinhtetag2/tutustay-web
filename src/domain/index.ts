@@ -8,3 +8,4 @@ export * from "./booking";
 export * from "./guests";
 export * from "./review";
 export * from "./geo";
+export * from "./times";

@@ -30,6 +30,25 @@ const ChipIcon = ({ name }: { name: keyof typeof CHIP_ICON }) => (
   <svg aria-hidden viewBox="0 0 24 24" className="size-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{CHIP_ICON[name]}</svg>
 );
 
+/** Phones: the two quick filters as a swipeable row of chips next to the "Filter & Sort" button, like the pills on wide screens. */
+export function QuickChips({ params, className }: { params: SearchParams; className?: string }) {
+  const t = useT();
+  const router = useRouter();
+  const pathname = usePathname();
+  const apply = (patch: Partial<SearchParams>) => {
+    const qs = toQueryString({ ...params, ...patch });
+    router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+  };
+  const chip = (on: boolean) => `type-body-sm inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 transition-colors ${on ? "border-border-focus bg-surface-brand-subtle font-semibold text-text-brand" : "border-border-control bg-surface-raised hover:bg-surface-subtle"}`;
+  return (
+    <div role="group" aria-label={t("filter.quick")} className={`no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0 lg:hidden ${className ?? ""}`}>
+      <button type="button" aria-pressed={params.popular} onClick={() => apply({ popular: !params.popular })} className={chip(params.popular)}><ChipIcon name="popular" />{t("filter.popular")}</button>
+      <button type="button" aria-pressed={params.bookable} onClick={() => apply({ bookable: !params.bookable })} className={chip(params.bookable)}><ChipIcon name="bookable" />{t("filter.bookable")}</button>
+      <button type="button" aria-pressed={params.coupons} onClick={() => apply({ coupons: !params.coupons })} className={chip(params.coupons)}><ChipIcon name="coupons" />{t("filter.coupons")}</button>
+    </div>
+  );
+}
+
 /** Filters apply live (replace URL). On small screens they sit in a disclosure sheet. */
 export function Filters({ params, sheetOnly = false, inline = false, count }: { params: SearchParams; sheetOnly?: boolean; inline?: boolean; count?: number }) {
   const t = useT();

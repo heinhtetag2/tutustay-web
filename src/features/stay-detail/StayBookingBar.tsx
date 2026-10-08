@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { addDays, formatDate, isValidStayRange, LIMITS, type SessionHours, type StayType } from "@/domain";
+import { addDays, formatDate, isValidStayRange, LIMITS, type SessionHours, type StayType, type WindowPolicies } from "@/domain";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { LocalLink } from "@/shared/components/LocalLink";
 import { MobileCalendar } from "@/shared/components/MobileCalendar";
@@ -21,6 +21,7 @@ interface Props {
   fromRate: number | null;
   soldOut?: boolean;
   sessionHours?: readonly number[];
+  policies?: WindowPolicies;
   /** On the stay page: where "Reserve" goes (the rooms screen). */
   reserveHref?: string;
   /** Replaces the right-hand button (the rooms page puts the "continue" button for the picked rooms here). */
@@ -31,7 +32,7 @@ interface Props {
  * Phones: the price and your dates stay pinned at the bottom. Tapping them opens a bottom sheet where the stay type, dates,
  * guests and rate type are changed (the same URL the room list reads), and "See rooms" jumps to the rooms.
  */
-export function StayBookingBar({ params, today, offered, fromRate, soldOut, sessionHours, reserveHref, action }: Props) {
+export function StayBookingBar({ params, today, offered, fromRate, soldOut, sessionHours, policies, reserveHref, action }: Props) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -111,7 +112,7 @@ export function StayBookingBar({ params, today, offered, fromRate, soldOut, sess
                     <p className="type-body-sm mt-1 text-text-secondary">{params.foreigner ? t("price.foreignerRate") : t("price.localRate")}</p>
                   </div>
 
-                  <StayTypePicker stayType={params.stayType} sessionHours={params.sessionHours} offered={offered} hours={sessionHours} onChange={(s: { stayType: StayType; sessionHours: SessionHours }) => apply(s)} />
+                  <StayTypePicker stayType={params.stayType} sessionHours={params.sessionHours} offered={offered} hours={sessionHours} policies={policies} startTime={params.startTime} endTime={params.endTime} onChange={(s: { stayType: StayType; sessionHours: SessionHours; startTime?: string; endTime?: string }) => apply(s)} />
 
                   <div className="flex items-center justify-between gap-3 border-y border-border-subtle py-4">
                     <div className="min-w-0">

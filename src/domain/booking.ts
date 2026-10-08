@@ -71,6 +71,10 @@ export interface Booking {
   roomName: string;
   stayType: StayType;
   sessionHours?: SessionHours;
+  /** For sessions and daycations: when the stay starts and ends (HH:MM). */
+  startTime?: string;
+  endTime?: string;
+  endsNextDay?: boolean;
   guestType: GuestType;
   checkIn: string;
   checkOut: string;
