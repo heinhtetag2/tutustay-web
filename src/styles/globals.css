@@ -144,3 +144,6 @@ details[open] > .pop { animation: drop-in 200ms var(--ease-out) both; transform-
 .dual-range input[type="range"]::-moz-range-thumb { pointer-events: auto; width: 24px; height: 24px; border-radius: 50%; background: var(--surface-raised); border: 2px solid var(--action-primary); box-shadow: 0 1px 3px #0003; cursor: grab; }
 .dual-range input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--border-focus); outline-offset: 2px; }
 .dual-range input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+
+/* Phones: a page with a fixed bottom bar keeps room under the footer's last line, so the bar never covers it, without leaving a gap above the footer. */
+@media (max-width: 1023px) { body:has([data-bottom-bar]) footer { padding-bottom: 5rem; } }

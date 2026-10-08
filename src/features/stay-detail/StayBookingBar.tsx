@@ -72,7 +72,7 @@ export function StayBookingBar({ params, today, offered, fromRate, soldOut, sess
 
   return (
     <>
-      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border-subtle bg-surface-raised px-[var(--gutter)] py-3 lg:hidden">
+      <div data-bottom-bar className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border-subtle bg-surface-raised px-[var(--gutter)] py-3 lg:hidden">
         <button type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" className="min-w-0 cursor-pointer text-left">
           {price}
           <span className="type-body-sm block truncate text-text-secondary underline underline-offset-4">{range} · {who}</span>

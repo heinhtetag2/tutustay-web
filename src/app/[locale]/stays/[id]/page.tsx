@@ -55,7 +55,7 @@ export default async function StayPage({ params, searchParams }: Props) {
   const back = toQueryString({ ...p, place: p.place });
 
   return (
-    <Container className="pb-28 lg:pb-8">
+    <Container className="pb-4 lg:pb-8">
       <nav aria-label={t("stay.breadcrumb")} className="py-4">
         <ol className="type-body-sm flex min-w-0 items-center gap-1 text-text-secondary">
           <li className="shrink-0">

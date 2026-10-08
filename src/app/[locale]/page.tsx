@@ -175,7 +175,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </Section>
 
       </Container>
-      <div className="-mb-12 overflow-hidden bg-[radial-gradient(55%_55%_at_85%_65%,#bae6fd_0%,#e0f2fe_50%,transparent_100%),linear-gradient(#fff_0%,#f5fbff_55%,#eaf6ff_100%)]">
+      <div className="-mb-16 overflow-hidden bg-[radial-gradient(55%_55%_at_85%_65%,#bae6fd_0%,#e0f2fe_50%,transparent_100%),linear-gradient(#fff_0%,#f5fbff_55%,#eaf6ff_100%)]">
         <AppSection locale={locale} covers={appCovers} />
       </div>
     </>

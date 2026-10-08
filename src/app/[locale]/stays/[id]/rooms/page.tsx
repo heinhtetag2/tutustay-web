@@ -67,7 +67,7 @@ export default async function StayRoomsPage({ params, searchParams }: Props) {
   );
 
   return (
-    <Container className="pb-28 lg:pb-8">
+    <Container className="pb-4 lg:pb-8">
       <div className="pt-4"><Breadcrumbs crumbs={[{ href: stayHref, label: stay.name }]} current={t("stay.rooms")} future={[t("crumb.review"), t("crumb.confirmation")]} /></div>
 
       <header>

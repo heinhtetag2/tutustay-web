@@ -70,7 +70,7 @@ export function BookingStatusView({ booking }: { booking: Booking }) {
   const timeLeft = useCountdown(deadline?.at ?? null);
 
   return (
-    <div className="grid gap-8 pb-24 lg:grid-cols-[minmax(0,1fr)_380px] lg:pb-0">
+    <div className="grid gap-8 pb-4 lg:grid-cols-[minmax(0,1fr)_380px] lg:pb-0">
       <div className="flex flex-col gap-6">
         <StatusHero booking={booking} body={t(bodyKey)} timeLeft={timeLeft} deadline={deadline} />
         <div className="rounded-card border border-border-subtle bg-surface-raised p-5">
@@ -156,7 +156,7 @@ export function BookingStatusView({ booking }: { booking: Booking }) {
       </div>
 
       {/* Phones: the price opens from a slim bar at the bottom instead of sitting at the very end of a long page. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border-subtle bg-surface-raised px-[var(--gutter)] py-3 lg:hidden">
+      <div data-bottom-bar className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-border-subtle bg-surface-raised px-[var(--gutter)] py-3 lg:hidden">
         <div className="min-w-0">
           <p className="type-body-sm text-text-secondary">{t("price.total")}</p>
           <p className="type-price-md">{formatKs(booking.price.total)}</p>
